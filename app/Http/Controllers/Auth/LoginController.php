@@ -36,4 +36,20 @@ class LoginController extends Controller
     {
         $this->middleware('guest', ['except' => 'logout']);
     }
+    
+    protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|min:6|confirmed',
+        ]);
+    }
+
+    public function selfAuth() {
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+            // 認証に成功した
+            return redirect()->intended('dashboard');
+        }
+    }
+    
 }

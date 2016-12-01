@@ -18,9 +18,10 @@ shoppingCart
 </div>
 @endif
 <hr>
-
+<div id="userDisp">
+@include('users.productList')
+</div>
 @else
-
 <!--ログインユーザーの場合-->
 
 @if (Route::has('login'))
@@ -29,52 +30,21 @@ shoppingCart
 </div>
 @endif
 <p>ユーザー名: {{ Auth::user()->name }}</p>
-<p>
-<input type="text" id="productSearch" placeholder="商品検索">
-<input type="submit" value="検索">
-<a href="{{ url('/cart') }}" id="cart">カート({{ $totalNum }}点)</a>
-<a href="{{ url('/orderHistory') }}" id="orderHistory">注文履歴</a>
-</p>
-
+<div id="userMenu">
+    <input type="text" id="searchText" placeholder="商品検索">
+    <input type="submit" id="searchBtn" value="検索">
+    <ul>
+    {{--<li class="menu" id="currentMenu"><a href="javascript:void(0)" id="products" onclick="showProducts()">商品一覧</a></li>
+    <li class="menu"><a href="javascript:void(0)" id="cart" onclick="showCart()">カート({{ $totalNum }}点)</a></li>
+    <li class="menu"><a href="javascript:void(0)" id="orderHistory" onclick="showOrderHistory()">注文履歴</a></li>--}}
+    <li class="menu" id="currentMenu"><a href="javascript:void(0)" id="products">商品一覧</a></li>
+    <li class="menu"><a href="javascript:void(0)" id="cart">カート({{ $totalNum }}点)</a></li>
+    <li class="menu"><a href="javascript:void(0)" id="orderHistory">注文履歴</a></li>
+    </ul>
+</div>
 <hr>
-
-<ul id="productList" class="productList" style="list-style:none;">
-@forelse ($products as $product)
-<div id="product_{{ $product->id }}">
-<li>
-<div class="productContainer"> 
-
-<div class="product productImage">
-    <img src="images/{{ $product->imagePath }}" height="100" width="100">
+<div id="userDisp" data-lastpage="{{$products->lastPage()}}">
+@include('users.productList')
 </div>
-<div class="product productName">
-    {{ $product->productName }}
-</div>
-<div class="product productPrice">
-    ¥{{ $product->productPrice }}
-</div>
-</div>
-
-<div class="insertCart">
-
-数量：<select name="num" id="productNum_{{ $product->id }}" class="productNum">
-    <option value="1" selected>1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-</select>
-
-<button type="submit" id="insertCartBtn_{{ $product->id }}" class="insertCartBtn" onclick="insertCart({{ $product->id }}, '{{ Auth::user()->name }}')">カートに入れる</button>
-</div>
-</li>
-
-</div>
-
-<hr>
-@empty
-<li>No products yet</li>
-@endforelse
-</ul>
-
 @endif
 @endsection

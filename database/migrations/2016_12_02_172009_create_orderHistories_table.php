@@ -13,7 +13,7 @@ class CreateOrderHistoriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('orderHistories', function (Blueprint $table) {
+        Schema::create('order_histories', function (Blueprint $table) {
             $table->increments('id');
             $table->string('userName');
             $table->text('productName');
@@ -31,6 +31,6 @@ class CreateOrderHistoriesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('orderHistories');
+        Schema::dropIfExists('order_histories');
     }
 }

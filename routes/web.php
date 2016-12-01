@@ -20,9 +20,19 @@ Route::post('/insertCart', 'ProductsController@insertCart');
 Route::get('/cart', 'ProductsController@cart');
 Route::post('/delete', 'ProductsController@destroy');
 Route::post('/confirm', 'ProductsController@confirm');
-Route::get('/orderHistory', 'ProductsController@showOrderHistory');
+//Route::get('/orderHistory', 'ProductsController@showOrderHistory');
+Route::post('/showProducts', 'ProductsController@showProducts');
+Route::post('/showCart', 'ProductsController@showCart');
+Route::post('/showOrderHistory', 'ProductsController@showOrderHistory');
+Route::post('/search', 'ProductsController@search');
+
+Route::post('/autoPaging', 'ProductsController@autoPaging');
 
 
 Auth::routes();
+Route::get('/logout', function() {
+    Auth::logout();
+    return redirect('/');
+});
 
-Route::get('/home', 'HomeController@index');
+//Route::get('/home', 'HomeController@index');
