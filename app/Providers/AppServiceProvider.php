@@ -15,8 +15,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         //
-        Blade::directive('orderTime', function($product) {
-            return '<?php $time = strtotime($product->created_at); $time = getdate($time); echo $time["year"]."年".$time["mon"]."月".$time["mday"]."日"; ?>';
+        Blade::directive('test', function($orderDetail) {
+            return '<?php var_dump($orderDetail); ?>';
+        });
+        
+        Blade::directive('orderTime', function($orderDetail) {
+            return '<?php $time = strtotime($orderDetail[0]->created_at); $time = getdate($time); echo $time["year"]."年".$time["mon"]."月".$time["mday"]."日"; ?>';
         });
         
         Blade::directive('orderNum', function($product) {
@@ -30,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('orderGroup', function($product) {
             return '<?php if ($count == 0) { echo "<p>購入日:$product->created_at</p>"; $preOrderTime = $product->created_at; $count++; } else { if ($product->created_at != $preOrderTime) { echo "<hr color=\"red\" size=\"5\"><p>購入日:$product->created_at</p>"; } $preOrderTime = $product->created_at; }  ?>';
         });
+        
+        
     }
 
     /**

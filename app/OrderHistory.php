@@ -7,5 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class OrderHistory extends Model
 {
     //order_historiesにアクセスする
-    protected $fillable = ['userName', 'productName', 'totalNum', 'totalMoney', 'imagePath'];
+    protected $fillable = ['orderNum', 'userId'];
+    
+    public function orderDetails() {
+        return $this->hasMany('App\OrderDetail', 'orderNum');
+    }
 }

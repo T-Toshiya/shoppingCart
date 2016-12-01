@@ -1,4 +1,94 @@
+/*注文ページ*/
 
+.orderNum {
+    margin: 10px 0px;
+}
+
+.productContainer {
+    width: 80%;
+    float: left;
+    margin: 10px auto;
+}
+
+.productPrice {
+    width: 20%;
+    float: left;
+}
+
+.productImage {
+    width: 25%;
+    float: left;
+}
+
+.productName {
+    height: 100px;
+    width: 55%;
+    float: left;
+}
+
+.productPrice {
+    width: 20%;
+    float: left;
+}
+
+.insertCart {
+    height: 100px;
+    margin: 10px auto;
+}
+
+/*注文履歴ページ*/
+
+.orderHistory {
+    display: inline;
+    margin: auto 20px;
+}
+
+.orderDetail {
+    margin: 10px auto;
+}
+
+.orderImage {
+    width: 100px;
+}
+
+.orderName {
+    width: 200px;
+    margin: auto 30px;
+}
+
+
+.orderPrice {
+    
+}
+
+.orderTime {
+    
+}
+
+
+#userMenu {
+    display: inline;
+}
+
+/*メニュー*/
+
+.menu {
+    list-style: none;
+    width: 100px;
+    height: 20px;
+    margin: 2px;
+    padding: 2px;
+    display: block;
+    float: left;
+}
+
+#currentMenu {
+    font-weight: bold;
+    background: #fff;
+    border-bottom: 1px solid #AAA;
+}
+
+/*
 .product {
     display: inline;
 }
@@ -59,3 +149,4 @@
     color: black;
     text-decoration: none;
 }
+*/

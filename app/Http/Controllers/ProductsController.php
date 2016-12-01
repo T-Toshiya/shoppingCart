@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Product;
 use App\Cart;
 use App\OrderHistory;
+use App\OrderDetail;
+use App\User;
 use DB;
 use Illuminate\Support\Facades\Auth;
 //use Illuminate\Http\RedirectResponse
@@ -88,20 +90,23 @@ class ProductsController extends Controller
     //決済処理
     public function confirm(Request $request) {
         $orderProducts = Cart::where('userName', '=', Auth::user()->name)->get();
+        $userInfo = User::where('name', '=', Auth::user()->name)->get();
         
         if (count($orderProducts) == 0) {
             abort(404, 'カートに商品が入っていません。');
         }
         
+        //注文番号の登録
+        $orderHistory = new OrderHistory();
+        $orderHistory->userId = Auth::user()->id;
+        $orderHistory->save();
+        
         foreach ($orderProducts as $orderProduct) {
-            $orderHistory = new OrderHistory();
-            $orderHistory->userName = $orderProduct->userName;
-            $orderHistory->productName = $orderProduct->productName;
-            $orderHistory->totalNum = $orderProduct->productNum;
-            //totalPriceに変更する
-            $orderHistory->totalPrice = $orderProduct->productPrice * $orderProduct->productNum;
-            $orderHistory->imagePath = $orderProduct->imagePath;
-            $orderHistory->save();
+            $orderDetails = new OrderDetail();
+            $orderDetails->orderNum = $orderHistory->id;
+            $orderDetails->productId = $orderProduct->productId;
+            $orderDetails->orderQuantity = $orderProduct->productNum;
+            $orderDetails->save();
             $orderProduct->delete();
         }
         
@@ -137,9 +142,20 @@ class ProductsController extends Controller
     
     //買い物履歴を表示
     public function showOrderHistory() {
-        $orderHistory = OrderHistory::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->paginate(10);
+        $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->paginate(10);
         
-        return view('users.orderHistory')->with('products', $orderHistory);
+        $orderDetails = array();
+        
+        foreach ($orderHistories as $orderHistory) {
+            foreach ($orderHistory->orderDetails as $orderDetail) {
+                $productInfo = Product::where('id', '=', $orderDetail->productId)->get();
+                $orderDetail->productName = $productInfo[0]->productName;
+                $orderDetail->productPrice = $productInfo[0]->productPrice;
+                $orderDetail->imagePath = $productInfo[0]->imagePath;
+            }
+            $orderDetails[] = $orderHistory->orderDetails;
+        }
+        return view('users.orderDetail')->with('orderDetails', $orderDetails);
     }
     
     public function orderGroup($orderHistory) {
@@ -200,7 +216,20 @@ class ProductsController extends Controller
         } elseif (Auth::guest()) {
             $products = Product::orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
         } else {
-            $products = OrderHistory::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
+            $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
+            
+            $orderDetails = array();
+
+            foreach ($orderHistories as $orderHistory) {
+                foreach ($orderHistory->orderDetails as $orderDetail) {
+                    $productInfo = Product::where('id', '=', $orderDetail->productId)->get();
+                    $orderDetail->productName = $productInfo[0]->productName;
+                    $orderDetail->productPrice = $productInfo[0]->productPrice;
+                    $orderDetail->imagePath = $productInfo[0]->imagePath;
+                }
+                $orderDetails[] = $orderHistory->orderDetails;
+            }
+            return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('page', $request->currentPage);
         }
         return view('users.productList')->with('products', $products)->with('page', $request->currentPage);
     }

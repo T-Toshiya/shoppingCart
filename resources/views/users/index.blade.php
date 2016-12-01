@@ -53,6 +53,7 @@ shoppingCart
     <li class="menu">
         <div id="orderHistory"><a href="javascript:void(0)">注文履歴</a></div>
     </li>
+    <button id="deleteOrderHistory" type="submit" onclick="deleteOrderHistory()" style="display: none;">履歴削除</button>
     </ul>
 </div>
 
