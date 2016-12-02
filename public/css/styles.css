@@ -1,0 +1,34 @@
+body {
+    
+}
+
+.product {
+    display: inline;
+}
+
+.productContainer {
+    width: 80%;
+    float: left;
+    margin: 10px auto;
+}
+
+.productImage {
+    width: 25%;
+    float: left;
+}
+
+.productName {
+    height: 100px;
+    width: 55%;
+    float: left;
+}
+
+.productPrice {
+    width: 20%;
+    float: left;S
+}
+
+.insertCart {
+    width: 20%;
+    float: right;
+}
