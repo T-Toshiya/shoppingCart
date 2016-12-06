@@ -11,22 +11,24 @@
 |
 */
 
-//Route::get('/', function () {
-//    return view('users.index');
-//});
 Route::get('/', 'ProductsController@index');
-Route::post('/insertCart', 'ProductsController@insertCart');
 
+Route::post('/insertCart', 'ProductsController@insertCart');
+//Route::post('/insertCart', function() {
+//    return redirect('/login');
+//});
 Route::get('/cart', 'ProductsController@cart');
 Route::post('/delete', 'ProductsController@destroy');
 Route::post('/confirm', 'ProductsController@confirm');
-//Route::get('/orderHistory', 'ProductsController@showOrderHistory');
+
 Route::post('/showProducts', 'ProductsController@showProducts');
 Route::post('/showCart', 'ProductsController@showCart');
 Route::post('/showOrderHistory', 'ProductsController@showOrderHistory');
 Route::post('/search', 'ProductsController@search');
 
 Route::post('/autoPaging', 'ProductsController@autoPaging');
+Route::post('/changeCart', 'ProductsController@changeCart');
+Route::post('/deleteOrderHistory', 'ProductsController@deleteOrderHistory');
 
 
 Auth::routes();

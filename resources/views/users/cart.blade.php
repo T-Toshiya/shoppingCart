@@ -11,8 +11,18 @@
     {{ $product->productName }}
 </div>
 <div class="cart productPrice">
-    数量:{{ $product->productNum }}<br>
-    ¥{{ $product->productPrice * $product->productNum }}
+    数量：<select name="num" id="cartProductNum_{{ $product->id }}" class="cartProductNum" onchange="changeCart({{ $product->id }}, {{ $product->productId }})">
+    
+    @for ($i = 1; $i < 11; $i++)
+    @if ($i == $product->productNum)
+    <option value="{{ $i }}" selected>{{ $i }}</option>
+    @else
+    <option value="{{ $i }}">{{ $i }}</option>
+    @endif
+    @endfor
+    
+    </select>
+    <div id="price_{{ $product->id }}">¥{{ number_format($product->productPrice * $product->productNum) }}</div>
 </div>
 <div class="delete">
     <a href="javascript:void(0)" onclick="destroy({{ $product->id }})">[削除]</a>
@@ -26,9 +36,9 @@
 @endforelse
 </ul>
 
-<div class="total">
-    <p>小計({{ $totalNum }}点)：¥{{ $totalPrice }}</p>
+<div class="totalDisp">
+    <p id="total">小計({{ $totalNum }}点)：¥{{ number_format($totalPrice) }}</p>
     <p>
-        <button type="submit" onclick="orderConfirm()">注文を確定する</button>
+        <button id="orderConfirm" type="submit">注文を確定する</button>
     </p>
 </div>

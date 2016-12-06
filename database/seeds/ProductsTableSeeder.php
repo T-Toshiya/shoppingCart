@@ -16,7 +16,7 @@ class ProductsTableSeeder extends Seeder
         DB:: table('products')->insert([
             'productName' => str_random(10),
             'productPrice' => rand(100, 1000),
-            'imagePath' => 'book10.jpeg'
+            'imagePath' => 'book10.jpg'
         ]);
     }
 }

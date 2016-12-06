@@ -11,20 +11,29 @@
                     {{ $product->productName }}
                 </div>
                 <div class="product productPrice">
-                    ¥{{ $product->productPrice }}
+                    ¥{{ number_format($product->productPrice) }}
                 </div>
             </div>
 
             <div class="insertCart">
-
+                
                 数量：<select name="num" id="productNum_{{ $product->id }}" class="productNum">
-                <option value="1" selected>1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
+                @for ($i = 1; $i < 11; $i++)
+                @if ($i == 1)
+                <option value="{{ $i }}" selected>{{ $i }}</option>
+                @else
+                <option value="{{ $i }}">{{ $i }}</option>
+                @endif
+                @endfor  
                 </select>
-
-                <button type="submit" id="insertCartBtn_{{ $product->id }}" class="insertCartBtn" onclick="insertCart({{ $product->id }})">カートに入れる</button>
+                
+                <input type="text" value="{{ $product->id }}" style="display:none;">
+                @if (Auth::guest())
+                {{--<button type="submit" class="insertCartBtn"><a href="{{ url('/login') }}">カートに入れる</a></button>--}}
+                <button type="submit" class="insertCartBtnNonAccount" onclick="location.href='{{ url('/login') }}'">カートに入れる</button>
+                @else
+                <button type="submit" id="insertCartBtn_{{ $product->id }}" class="insertCartBtn">カートに入れる</button>
+                @endif
             </div>
         </li>
 

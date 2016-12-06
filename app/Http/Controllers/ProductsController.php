@@ -8,6 +8,7 @@ use App\Cart;
 use App\OrderHistory;
 use DB;
 use Illuminate\Support\Facades\Auth;
+//use Illuminate\Http\RedirectResponse
 
 class ProductsController extends Controller
 {
@@ -15,7 +16,6 @@ class ProductsController extends Controller
     //初期画面
     public function index() {
         //商品一覧の取得
-//        $products = Product::all();
         $products = Product::orderBy('id', 'desc')->paginate(10);
         $count = Product::count();
         
@@ -35,7 +35,8 @@ class ProductsController extends Controller
     //カートに商品を入れる
     public function insertCart(Request $request) {
         if (Auth::guest()) {
-            return redirect('/login');
+            //return redirect()->route('login');
+            return Redirect::to('/login');
         }
         
         //商品情報を取得
@@ -81,12 +82,16 @@ class ProductsController extends Controller
             $totalPrice += $product->productNum * $product->productPrice;
         }
         
-        return view('users.cart')->with('products', $productsInCart)->with('totalNum', $totalNum)->with('totalPrice', $totalPrice);
+        return array($totalNum, $totalPrice);
     }
     
     //決済処理
     public function confirm(Request $request) {
         $orderProducts = Cart::where('userName', '=', Auth::user()->name)->get();
+        
+        if (count($orderProducts) == 0) {
+            abort(404, 'カートに商品が入っていません。');
+        }
         
         foreach ($orderProducts as $orderProduct) {
             $orderHistory = new OrderHistory();
@@ -94,7 +99,7 @@ class ProductsController extends Controller
             $orderHistory->productName = $orderProduct->productName;
             $orderHistory->totalNum = $orderProduct->productNum;
             //totalPriceに変更する
-            $orderHistory->totalMoney = $orderProduct->productPrice * $orderProduct->productNum;
+            $orderHistory->totalPrice = $orderProduct->productPrice * $orderProduct->productNum;
             $orderHistory->imagePath = $orderProduct->imagePath;
             $orderHistory->save();
             $orderProduct->delete();
@@ -109,7 +114,6 @@ class ProductsController extends Controller
     
     //商品一覧を表示　
     public function showProducts() {
-        //$products = Product::all();
         $products = Product::orderBy('id', 'desc')->paginate(10);
 
         return view('users.productList')->with('products', $products);
@@ -117,7 +121,6 @@ class ProductsController extends Controller
     
     //カートを表示　
     public function showCart() {
-//        $products = Cart::where('userName', '=', Auth::user()->name)->paginate(10);
         $products = Cart::where('userName', '=', Auth::user()->name)->get();
         //合計個数と金額
         $totalNum = 0;
@@ -127,57 +130,85 @@ class ProductsController extends Controller
             $totalNum += $product->productNum;
             $totalPrice += $product->productPrice * $product->productNum;
         }
-
+    
         return view('users.cart')->with('products', $products)->with('totalNum', $totalNum)->with('totalPrice', $totalPrice);
+        
     }
     
     //買い物履歴を表示
     public function showOrderHistory() {
-        $orderHistory = OrderHistory::where('userName', '=', Auth::user()->name)->orderBy('created_at', 'desc')->paginate(10);
+        $orderHistory = OrderHistory::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->paginate(10);
         
         return view('users.orderHistory')->with('products', $orderHistory);
+    }
+    
+    public function orderGroup($orderHistory) {
+        
     }
     
     //商品検索
     public function search(Request $request) {
         $searchText = $request->searchText;
-        if ($searchText == "") {
-            $products = Product::orderBy('id', 'desc')->paginate(10);
+        $searchContent = $request->searchContent;
+        
+        if ($searchContent == "searchProduct") {
+            if ($searchText == "") {
+                $products = Product::orderBy('id', 'desc')->paginate(10);
+            } else {
+                $products = Product::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+            }
+            return view('users.productList')->with('products', $products);
         } else {
-            $products = Product::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+            if ($searchText == "") {
+                $products = OrderHistory::orderBy('id', 'desc')->paginate(10);
+            } else {
+                $products = OrderHistory::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+            }
+            return view('users.orderHistory')->with('products', $products);
+        }
+    }
+    
+    //カート内の変更処理
+    public function changeCart(Request $request) {
+        $cart = Cart::where('userName', '=', Auth::user()->name)->where('productId', '=', $request->selectedId)->get();
+        
+        $cart[0]->productNum = $request->selectedNum;
+        $cart[0]->save();
+        
+        $postPrice = $request->selectedNum * $cart[0]->productPrice;
+    
+        $productsInCart = Cart::where('userName', '=', Auth::user()->name)->get();
+        
+        $totalNum = 0;
+        $totalPrice = 0;
+        foreach ($productsInCart as $product) {
+            $totalNum += $product->productNum;
+            $totalPrice += $product->productPrice * $product->productNum;
         }
         
-        return view('users.productList')->with('products', $products);
+        return array(number_format($postPrice), $totalNum, number_format($totalPrice));
     }
     
     //スクロールによって自動読み込み
     public function autoPaging(Request $request) {
         if ($request->currentMenu == 'products') {
+            if ($request->searchText !== '') {
+                $products = Product::where('productName', 'like', '%'.$request->searchText.'%')->orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
+            } else {
+                $products = Product::orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
+            }
+        } elseif (Auth::guest()) {
             $products = Product::orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
-            
-            return view('users.productList')->with('products', $products)->with('page', $request->currentPage);
-            
-        }
-//        elseif ($request->currentMenu == 'cart') {
-//            $products = Cart::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
-//            
-//            return view('users.cart')->with('products', $products)->with('page', $request->currentPage);
-//            
-//        } 
-        else {
-            $products = OrderHistory::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
-            
-            return view('users.orderHistory')->with('products', $products)->with('page', $request->currentPage);
-        }
-        
-
-
-        if (Auth::guest()) {
-            //非ログインユーザーの場合
-            
         } else {
-            //ログインユーザーの場合
-            return view('users.productList')->with('products', $products)->with('page', $request->currentPage);
+            $products = OrderHistory::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
         }
+        return view('users.productList')->with('products', $products)->with('page', $request->currentPage);
+    }
+    
+    public function deleteOrderHistory(Request $request) {
+        $deleteOrderHistory = OrderHistory::where('userName', '=', Auth::user()->name)->delete();
+        
+        $deleteOrderHistory = OrderHistory::where('userName', '=', Auth::user()->name)->get();
+        return view('users.orderHistory')->with('products', $deleteOrderHistory);
     }
 }

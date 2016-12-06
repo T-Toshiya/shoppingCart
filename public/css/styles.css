@@ -46,4 +46,16 @@
 
 #currentMenu {
     font-weight: bold;
+    background: #fff;
+    border-bottom: 1px solid #AAA;
+}
+
+.insertCartBtn {
+    color: black;
+    text-decoration: none;
+}
+
+.insertCartBtn a:link {
+    color: black;
+    text-decoration: none;
 }

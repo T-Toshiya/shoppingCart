@@ -17,8 +17,11 @@ shoppingCart
     <a href="{{ url('/register') }}" class="authLink">Register</a>
 </div>
 @endif
+<ul>
+    <li class="menu" id="currentMenu" style="display:none"><a href="javascript:void(0)" id="products"></a></li>
+</ul>
 <hr>
-<div id="userDisp">
+<div id="userDisp" data-lastpage="{{$products->lastPage()}}">
 @include('users.productList')
 </div>
 @else
@@ -29,22 +32,35 @@ shoppingCart
     <a href="{{ url('/logout') }}" class="logoutLink">Logout</a>
 </div>
 @endif
+<div id="userContents">
 <p>ユーザー名: {{ Auth::user()->name }}</p>
 <div id="userMenu">
-    <input type="text" id="searchText" placeholder="商品検索">
-    <input type="submit" id="searchBtn" value="検索">
+    <div id="searchContents" style="display: block;">
+    <input type="text" id="searchText" class="searchProduct" placeholder="タイトルで検索">
+    <input type="submit" id="searchBtn" value="商品検索">
+    </div>
     <ul>
-    {{--<li class="menu" id="currentMenu"><a href="javascript:void(0)" id="products" onclick="showProducts()">商品一覧</a></li>
-    <li class="menu"><a href="javascript:void(0)" id="cart" onclick="showCart()">カート({{ $totalNum }}点)</a></li>
-    <li class="menu"><a href="javascript:void(0)" id="orderHistory" onclick="showOrderHistory()">注文履歴</a></li>--}}
-    <li class="menu" id="currentMenu"><a href="javascript:void(0)" id="products">商品一覧</a></li>
-    <li class="menu"><a href="javascript:void(0)" id="cart">カート({{ $totalNum }}点)</a></li>
-    <li class="menu"><a href="javascript:void(0)" id="orderHistory">注文履歴</a></li>
+    <li class="menu" id="currentMenu">
+        <div id="products"><a href="javascript:void(0)">商品一覧</a></div>
+    </li>
+    <li class="menu">
+    @if ($totalNum == 0)
+        <div id="cart">カート({{ $totalNum }}点)</div>
+    @else
+        <div id="cart"><a href="javascript:void(0)">カート({{ $totalNum }}点)</a></div>
+    @endif
+    </li>
+    <li class="menu">
+        <div id="orderHistory"><a href="javascript:void(0)">注文履歴</a></div>
+    </li>
     </ul>
 </div>
+
 <hr>
+
 <div id="userDisp" data-lastpage="{{$products->lastPage()}}">
 @include('users.productList')
+</div>
 </div>
 @endif
 @endsection
