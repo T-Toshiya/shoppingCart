@@ -13,13 +13,18 @@ $(function() {
         $(window).unbind("bottom");
 
         var page = 1; //ページ番号
-        var endPage = $("#userDisp").data('lastpage');
+//        var endPage = $("#userDisp").data('lastpage');
         var end_flag = 0; //最後のページまで行ったら1にして読み込みを終了させる
         var currentMenu = $("#currentMenu div").attr('id');
+        if (currentMenu == 'products') {
+            var endPage = $(".lastPage").data('lastpage');
+        } else {
+            var endPage = $(".orderHistoryLastPage").data('lastpage');
+        }
         var searchText = $("#searchText").val();
 
         //var searchContent = $("[name=search]:checked").val();
-        if (currentMenu !== 'cart' || currentMenu !== 'orderHistory') {
+        if (currentMenu !== 'cart') {
         $(window).bottom({proximity: 0.05});
         $(window).bind("bottom", function() {
             if (end_flag == 0) {
@@ -46,7 +51,8 @@ $(function() {
                         }).done(function(data) {
                             $(".loading").html('');
                             if (page <= endPage) {
-                                $("#userDisp").append(data);
+                                //$("#userDisp").append(data);
+                                $("#productList").append(data);
                                 obj.data('loading', false);
                             } else {
                                 end_flag++;
@@ -77,7 +83,8 @@ $(function() {
             processData: false,
             contentType: false,
         }).done(function(productsList) {
-            $("#userDisp").html(productsList);
+            console.log(productsList);
+            $("#productList").html(productsList);
             $("#currentMenu").removeAttr('id');
             $("#products").parent('li').attr('id', 'currentMenu');
             $("#searchBtn").val("商品検索");
@@ -110,7 +117,8 @@ $(function() {
             processData: false,
             contentType: false,
         }).done(function(cartList) {
-            $("#userDisp").html(cartList);
+            //$("#userDisp").html(cartList);
+            $("#productList").html(cartList);
             $("#currentMenu").removeAttr('id');
             $("#cart").parent('li').attr('id', 'currentMenu');
             $("#searchContents").hide();
@@ -141,6 +149,7 @@ $(function() {
         }).done(function(orderHistory) {
             console.log(orderHistory);
             $("#userDisp").html(orderHistory);
+            //$("#productList").html(orderHistory);
             $("#currentMenu").removeAttr('id');
             $("#orderHistory").parent('li').attr('id', 'currentMenu');
             $("#searchBtn").val("注文検索");
@@ -177,7 +186,8 @@ $(function() {
             processData: false,
             contentType: false,
         }).done(function(productsList) {
-            $("#userDisp").html(productsList);
+            //$("#userDisp").html(productsList);
+            $("#productList").html(productsList);
             
             //自動読み込みしないようにする
             $(window).unbind("bottom");
@@ -213,6 +223,41 @@ $(function() {
         });
     });
     
+    $(document).on('click', '.insertAmazonCartBtn', function() {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        var productId = $(this).prev("input").val();
+        var productName = $("#productName_"+productId).html();
+        var productPrice = $("#productPrice_"+productId).html().substr(1).split(',').join('');
+        console.log(productPrice);
+        var imagePath = $("#productImage_"+productId+ " img").attr('src');
+        var selectedNum = $("#productNum_" + productId).val();
+        var fd = new FormData();
+        fd.append("productId", productId);
+        fd.append("productName", productName);
+        fd.append("productPrice", productPrice);
+        fd.append("imagePath", imagePath);
+        fd.append("selectedNum", selectedNum);
+        $.ajax({
+            type: 'POST',
+            url: '/insertAmazonCart',
+            data: fd,
+            processData: false,
+            contentType: false,
+        }).done(function(totalNum) {
+            $("#cart").html("<a href='javascript:void(0)'>カート("+totalNum+"点)</a>");
+            init();
+            //showCart();
+        }).fail(function(error) {
+            console.log(error);
+            alert('不正アクセスエラー');
+        });
+    });
+    
     function orderConfirm() {
         $("#orderConfirm").click(function() {
             if (confirm('注文を確定しますか')) {
@@ -231,7 +276,8 @@ $(function() {
                 }).done(function(productsList) {
                     alert('注文が確定しました');
                     $("#cart").html("カート(0点)");
-                    $("#userDisp").html(productsList);
+                    //$("#userDisp").html(productsList);
+                    $("#productList").html(productsList);
                     $("#currentMenu").removeAttr('id');
                     $("#products").parent('li').attr('id', 'currentMenu');
                     init();
@@ -347,7 +393,8 @@ function deleteOrderHistory() {
             processData: false,
             contentType: false,
         }).done(function(result) {
-            $("#userDisp").html(result);
+            $("#productList").html(result);
+            //$("#userDisp").html(result);
         }).fail(function(error) {
             console.log(error);
             //alert('不正アクセスエラー');

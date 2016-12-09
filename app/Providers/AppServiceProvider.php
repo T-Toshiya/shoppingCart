@@ -15,8 +15,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         //
-        Blade::directive('test', function($orderDetail) {
-            return '<?php var_dump($orderDetail); ?>';
+        Blade::directive('header', function() {
+            return '<?php header("Content-Type: application/xml"); ?>';
+        });
+        
+        Blade::directive('amazon', function($result) {
+            return '<?php var_dump($result); ?>';
         });
         
         Blade::directive('orderTime', function($orderDetail) {

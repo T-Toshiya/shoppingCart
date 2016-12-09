@@ -14,12 +14,12 @@ class ChangeOrderHistoriesTable extends Migration
     public function up()
     {
         Schema::table('order_histories', function (Blueprint $table) {
-            $table->dropColumn('userName');
-            $table->dropColumn('productName');
-            $table->dropColumn('totalNum');
-            $table->dropColumn('totalMoney');
+//            $table->dropColumn('userName');
+//            $table->dropColumn('productName');
+//            $table->dropColumn('totalNum');
+            $table->dropColumn('totalPrice');
             $table->dropColumn('imagePath');
-            $table->integer('userId')->after('id');
+//            $table->integer('userId')->after('id');
         });
     }
 

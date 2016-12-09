@@ -1,4 +1,4 @@
-<ul id="productList" class="productList" style="list-style:none;">
+{{--<ul id="productList" class="productList" style="list-style:none;">--}}
     @forelse ($products as $product)
     <div id="product_{{ $product->id }}">
         <li>
@@ -43,4 +43,4 @@
     @empty
     <li>No products yet</li>
     @endforelse
-</ul>
+{{--</ul>--}}

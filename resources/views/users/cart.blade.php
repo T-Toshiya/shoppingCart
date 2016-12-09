@@ -5,7 +5,8 @@
 <div class="productContainer"> 
 
 <div class="cart productImage">
-    <img src="images/{{ $product->imagePath }}" height="100" width="100">
+    {{--<img src="images/{{ $product->imagePath }}" height="100" width="100">--}}
+    <img src="{{ $product->imagePath }}" height="100" width="100">
 </div>
 <div class="cart productName">
     {{ $product->productName }}

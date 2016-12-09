@@ -7,6 +7,7 @@
         <link href="/css/app.css" rel="stylesheet">
     </head>
     <body>
+       @header()
        <div class="container">
            @yield('content')
        </div>

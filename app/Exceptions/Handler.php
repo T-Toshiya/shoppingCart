@@ -44,16 +44,16 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-//        if (config('app.debug')) {
-//            $whoops = new \Whoops\Run;
-//            $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
-//            
-//            return new \Illuminate\Http\Response(
-//                $whoops->handleException($exception),
-//                $exception->getStatusCode(),
-//                $exception->getHeaders()
-//            );
-//        }
+        if (config('app.debug')) {
+            $whoops = new \Whoops\Run;
+            $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
+            
+            return new \Illuminate\Http\Response(
+                $whoops->handleException($exception),
+                $exception->getStatusCode(),
+                $exception->getHeaders()
+            );
+        }
         
         return parent::render($request, $exception);
     }

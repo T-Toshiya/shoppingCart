@@ -12,7 +12,6 @@
 */
 
 Route::get('/', 'ProductsController@index');
-
 Route::post('/insertCart', 'ProductsController@insertCart');
 //Route::post('/insertCart', function() {
 //    return redirect('/login');
@@ -29,6 +28,10 @@ Route::post('/search', 'ProductsController@search');
 Route::post('/autoPaging', 'ProductsController@autoPaging');
 Route::post('/changeCart', 'ProductsController@changeCart');
 Route::post('/deleteOrderHistory', 'ProductsController@deleteOrderHistory');
+
+//Amazonカート用
+Route::get('/amazon', 'ProductsController@amazon');
+Route::post('/insertAmazonCart', 'ProductsController@insertAmazonCart');
 
 
 Auth::routes();

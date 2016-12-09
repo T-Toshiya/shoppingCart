@@ -12,4 +12,8 @@ class OrderHistory extends Model
     public function orderDetails() {
         return $this->hasMany('App\OrderDetail', 'orderNum');
     }
+    
+    public function orderAmazonDetails() {
+        return $this->hasMany('App\OrderAmazonDetail', 'orderNum');
+    }
 }

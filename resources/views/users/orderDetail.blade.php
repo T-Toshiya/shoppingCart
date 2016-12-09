@@ -1,3 +1,4 @@
+<div class="orderHistoryLastPage"  data-lastpage="{{ $lastPage }}">
 <ul id="productList" class="productList" style="list-style:none;">
     @forelse ($orderDetails as $orderDetail)
     <div class="orderNum" style="border-style: solid ; border-width: 1px;">
@@ -7,7 +8,8 @@
             <li>
                 <div class="order"> 
                     <div class="orderHistory orderImage">
-                        <img src="images/{{ $order->imagePath }}" height="100" width="100">
+                        {{--<img src="images/{{ $order->imagePath }}" height="100" width="100">--}}
+                        <img src="{{ $order->imagePath }}" height="100" width="100">
                     </div>
                     <div class="orderHistory orderName">
                         {{ $order->productName }}
@@ -27,3 +29,4 @@
     <li>No products yet</li>
     @endforelse
 </ul>
+</div>

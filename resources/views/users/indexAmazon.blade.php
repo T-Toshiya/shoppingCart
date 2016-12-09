@@ -21,7 +21,7 @@ shoppingCart
     <li class="menu" id="currentMenu" style="display:none"><a href="javascript:void(0)" id="products"></a></li>
 </ul>
 <hr>
-<div id="userDisp" data-lastpage="{{$products->lastPage()}}">
+<div id="userDisp" data-lastpage="">
 @include('users.productList')
 </div>
 @else
@@ -58,10 +58,10 @@ shoppingCart
 </div>
 
 <hr>
-<div class="lastPage" data-lastpage="{{ $products->lastPage() }}">
+<div class="lastPage" data-lastpage=6>
 <div id="userDisp">
 <ul id="productList" class="productList" style="list-style:none;">
-@include('users.productList')
+@include('users.amazon')
 </ul>
 </div>
 </div>
