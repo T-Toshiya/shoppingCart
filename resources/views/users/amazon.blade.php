@@ -6,7 +6,10 @@
                 <div id="productImage_{{ $item->ASIN }}" class="product productImage">
                     <img src="{{ $item->SmallImage->URL }}" height="100" width="100">
                 </div>
-                <div id="productName_{{ $item->ASIN }}" class="product productName">{{ $item->ItemAttributes->Title }}</div>
+                <div id="productName_{{ $item->ASIN }}" class="product productName">
+                {{ $item->ItemAttributes->Title }}<br><br>
+                {{ $item->ItemAttributes->Author }}
+                </div>
                 <div id="productPrice_{{ $item->ASIN }}" class="product productPrice">{{ $item->OfferSummary->LowestNewPrice->FormattedPrice }}</div>
             </div>
 

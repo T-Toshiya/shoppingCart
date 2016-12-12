@@ -20,9 +20,19 @@ shoppingCart
 <ul>
     <li class="menu" id="currentMenu" style="display:none"><a href="javascript:void(0)" id="products"></a></li>
 </ul>
+
+<div id="userMenu">
+    <div id="searchContents" style="display: block;">
+        <input type="text" id="searchText" class="searchProduct" placeholder="タイトルで検索">
+        <input type="submit" id="searchBtn" value="商品検索">
+    </div>
+</div>
+
 <hr>
 <div id="userDisp" data-lastpage="">
-@include('users.productList')
+<ul id="productList" class="productList" style="list-style:none;">
+@include('users.amazon')
+</ul>
 </div>
 @else
 <!--ログインユーザーの場合-->

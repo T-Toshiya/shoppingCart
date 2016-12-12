@@ -8,9 +8,11 @@ use App\Cart;
 use App\OrderHistory;
 use App\OrderDetail;
 use App\OrderAmazonDetail;
+use App\AmazonXml;
 use App\User;
 use DB;
 use Illuminate\Support\Facades\Auth;
+
 //use Illuminate\Http\RedirectResponse
 
 class ProductsController extends Controller
@@ -19,8 +21,38 @@ class ProductsController extends Controller
     //初期画面
     public function index() {
         //商品一覧の取得
-        $products = Product::orderBy('id', 'desc')->paginate(10);
-        $count = Product::count();
+//        $products = Product::orderBy('id', 'desc')->paginate(10);
+//        $count = Product::count();
+        
+        //amazon版
+        $url = $this->amazonApi();
+
+        //結構な頻度で取得失敗→APIの叩きすぎ
+        $xmlData = AmazonXml::where('page', '=', 1)->get();
+    
+        if (count($xmlData) == 0) {
+            $xml = file_get_contents($url);
+            $newXml = new AmazonXml();
+            $newXml->xml = $xml;
+            $newXml->page = 1;
+            $newXml->save();
+        } else {
+            $timestamp = $xmlData[0]->updated_at->getTimestamp();
+            $nowTime = time();
+            $time = $nowTime - $timestamp;
+            if ($time > 3600) {
+                $xml = file_get_contents($url);
+                $xmlData[0]->xml = $xml;
+                $xmlData[0]->save();
+            } else {
+                $xml = $xmlData[0]->xml;
+            }
+        }
+        $result = simplexml_load_string($xml);
+        $results = array();
+        foreach ($result->Items->Item as $Item) {
+            $results[] = $Item;
+        }
         
         //カートに入っている商品数の取得
         $totalNum = 0;
@@ -32,24 +64,38 @@ class ProductsController extends Controller
             }
         }
         
-        return view('users.index', ['products' => $products, 'totalNum' => $totalNum, 'count' => $count]);
+        //return view('users.index', ['products' => $products, 'totalNum' => $totalNum, 'count' => $count]);
+        return view('users.indexAmazon', ['items' => $results, 'totalNum' => $totalNum]);
     }
     
     public function amazon() {
-        $url = $this->amazonApi();
-        //結構な頻度で取得失敗→APIの叩きすぎ
-        $test = file_get_contents($url);
-
-        //curlを使ってみた。→変わらない
-//        $ch=curl_init();
-//        curl_setopt($ch,CURLOPT_URL,$url);
-//        curl_setopt($ch,CURLOPT_HEADER,FALSE);
-//        curl_setopt($ch,CURLOPT_RETURNTRANSFER,TRUE);
-//        curl_setopt($ch,CURLOPT_FOLLOWLOCATION,TRUE);
-//        $test=curl_exec($ch);
-//        curl_close($ch);
         
-        $result = simplexml_load_string($test);
+        
+        $url = $this->amazonApi();
+    
+        //結構な頻度で取得失敗→APIの叩きすぎ
+        $xmlData = AmazonXml::where('page', '=', 1)->get();
+        
+        if (count($xmlData) == 0) {
+            $xml = file_get_contents($url);
+            $newXml = new AmazonXml();
+            $newXml->xml = $xml;
+            $newXml->page = 1;
+            $newXml->save();
+        } else {
+            $timestamp = $xmlData[0]->updated_at->getTimestamp();
+            $nowTime = time();
+            $time = $nowTime - $timestamp;
+            if ($time > 3600) {
+                $xml = file_get_contents($url);
+                $xmlData[0]->xml = $xml;
+                $xmlData[0]->save();
+            } else {
+                $xml = $xmlData[0]->xml;
+            }
+        }
+        return $time;
+        $result = simplexml_load_string($xml);
         $reuslts = array();
         foreach ($result->Items->Item as $Item) {
             $results[] = $Item;
@@ -68,7 +114,7 @@ class ProductsController extends Controller
         return view('users.indexAmazon', ['items' => $results, 'totalNum' => $totalNum]);
     }
     
-    public function amazonApi($page = 1) {
+    public function amazonApi($page = 1, $searchText='') {
         $access_key_id = "AKIAII4CP5FHAAWO44WA";
         $secret_key = "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";
         
@@ -83,10 +129,12 @@ class ProductsController extends Controller
             "AWSAccessKeyId" => $access_key_id,
             "AssociateTag" => "toshiya05-22",
             "SearchIndex" => "Books",
-            "Keywords" => "東野圭吾",
+            "Keywords" => $searchText,
             "Version" => "2009-07-01",
             "ResponseGroup" => "Medium",
-            "ItemPage" => $page
+            "ItemPage" => $page,
+            "Sort" => "salesrank",
+            "Power" => "binding:not kindle"//←kindle版を除外(値段が出ないから)
         );
         
         if (!isset($params["Timestamp"])) {
@@ -238,7 +286,7 @@ class ProductsController extends Controller
         //$result = simplexml_load_file($url); 
         $result = simplexml_load_string($test);
         //return var_dump($result);
-        $reuslts = array();
+        $results = array();
         foreach ($result->Items->Item as $Item) {
             $results[] = $Item;
         }
@@ -253,9 +301,30 @@ class ProductsController extends Controller
         //return view('users.productList')->with('products', $products);
         
         $url = $this->amazonApi();
-        $test = file_get_contents($url); 
-        $result = simplexml_load_string($test);
-        $reuslts = array();
+
+        //結構な頻度で取得失敗→APIの叩きすぎ
+        $xmlData = AmazonXml::where('page', '=', 1)->get();
+
+        if (count($xmlData) == 0) {
+            $xml = file_get_contents($url);
+            $newXml = new AmazonXml();
+            $newXml->xml = $xml;
+            $newXml->page = 1;
+            $newXml->save();
+        } else {
+            $timestamp = $xmlData[0]->updated_at->getTimestamp();
+            $nowTime = time();
+            $time = $nowTime - $timestamp;
+            if ($time > 3600) {
+                $xml = file_get_contents($url);
+                $xmlData[0]->xml = $xml;
+                $xmlData[0]->save();
+            } else {
+                $xml = $xmlData[0]->xml;
+            }
+        }
+        $result = simplexml_load_string($xml);
+        $results = array();
         foreach ($result->Items->Item as $Item) {
             $results[] = $Item;
         }
@@ -296,8 +365,12 @@ class ProductsController extends Controller
         
         //amazon用
         foreach ($orderHistories as $orderHistory) {
+            if (count($orderHistory->orderAmazonDetails) == 0) {
+                continue;
+            }
             $orderDetails[] = $orderHistory->orderAmazonDetails;
         }
+        
         
         //全履歴を取得
         $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->get();
@@ -317,21 +390,86 @@ class ProductsController extends Controller
     public function search(Request $request) {
         $searchText = $request->searchText;
         $searchContent = $request->searchContent;
-        
+
         if ($searchContent == "searchProduct") {
             if ($searchText == "") {
-                $products = Product::orderBy('id', 'desc')->paginate(10);
+                //$products = Product::orderBy('id', 'desc')->paginate(10);
+                
+                //amazon版
+                $url = $this->amazonApi();
             } else {
-                $products = Product::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+                //$products = Product::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+                
+                //amazon版
+                $url = $this->amazonApi(1, $searchText);
             }
-            return view('users.productList')->with('products', $products);
+            sleep(1);
+            $xml = file_get_contents($url);
+            $result = simplexml_load_string($xml);
+            $results = array();
+            foreach ($result->Items->Item as $Item) {
+                $results[] = $Item;
+            }
+            return view('users.amazon', ['items' => $results]);
+            
+            //return view('users.productList')->with('products', $products);
         } else {
             if ($searchText == "") {
-                $products = OrderHistory::orderBy('id', 'desc')->paginate(10);
+                //$products = OrderHistory::orderBy('id', 'desc')->paginate(10);
+                
+                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->paginate(10);
+                $orderDetails = array();
+
+                //amazon用
+                foreach ($orderHistories as $orderHistory) {
+                    if (count($orderHistory->orderAmazonDetails) == 0) {
+                        continue;
+                    }
+                    $orderDetails[] = $orderHistory->orderAmazonDetails;
+                }
+
+                //全履歴を取得
+                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->get();
+
+                $orderCounts = array();
+
+                foreach ($orderHistories as $orderHistory) {
+                    $orderCounts[] = $orderHistory->orderAmazonDetails;
+                }
+
+                $lastPage = ceil(count($orderCounts)/10);
+
+                return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('lastPage', $lastPage);
             } else {
-                $products = OrderHistory::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+                //$products = OrderHistory::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->paginate(10);
+                $orderDetails = array();
+
+                //amazon用
+                foreach ($orderHistories as $orderHistory) {
+                    $searchItem = $orderHistory->orderAmazonDetails->where('productName', '=', $searchText);
+                    
+                    if (count($orderHistory->orderAmazonDetails) == 0) {
+                        continue;
+                    } 
+                    return $searchItem;
+                    $orderDetails[] = $searchItem;
+                }
+                return $orderDetails;
+                //全履歴を取得
+                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->get();
+            
+                $orderCounts = array();
+
+                foreach ($orderHistories as $orderHistory) {
+                    $orderCounts[] = $orderHistory->orderAmazonDetails;
+                }
+
+                $lastPage = ceil(count($orderCounts)/10);
+
+                return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('lastPage', $lastPage);
             }
-            return view('users.orderHistory')->with('products', $products);
+            
         }
     }
     
@@ -388,12 +526,42 @@ class ProductsController extends Controller
     //amazon用自動ページング
     public function autoPaging(Request $request) {
         
-        $url = $this->amazonApi($request->currentPage);
-        $test = file_get_contents($url);
-        //$result = simplexml_load_file($url); 
-        $result = simplexml_load_string($test);
-        //return var_dump($result);
-        $reuslts = array();
+        $url = $this->amazonApi($request->currentPage, $request->searchText);
+        if ($request->searchText == "") {
+            //$products = Product::orderBy('id', 'desc')->paginate(10);
+
+            //amazon版
+            $xmlData = AmazonXml::where('page', '=', $request->currentPage)->get();
+            if (count($xmlData) == 0) {
+                sleep(1);
+                $xml = file_get_contents($url);
+                $newXml = new AmazonXml();
+                $newXml->xml = $xml;
+                $newXml->page = $request->currentPage;
+                $newXml->save();
+            } else {
+                $timestamp = $xmlData[0]->updated_at->getTimestamp();
+                $nowTime = time();
+                $time = $nowTime - $timestamp;
+                if ($time > 3600) {
+                    sleep(1);
+                    $xml = file_get_contents($url);
+                    $xmlData[0]->xml = $xml;
+                    $xmlData[0]->save();
+                } else {
+                    $xml = $xmlData[0]->xml;
+                }
+            }
+        } else {
+            //$products = Product::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
+
+            //amazon版
+            sleep(1);
+            $xml = file_get_contents($url);
+        }
+    
+        $result = simplexml_load_string($xml);
+        $results = array();
         foreach ($result->Items->Item as $Item) {
             $results[] = $Item;
         }

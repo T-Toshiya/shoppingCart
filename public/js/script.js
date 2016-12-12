@@ -22,9 +22,8 @@ $(function() {
             var endPage = $(".orderHistoryLastPage").data('lastpage');
         }
         var searchText = $("#searchText").val();
-
         //var searchContent = $("[name=search]:checked").val();
-        if (currentMenu !== 'cart') {
+        if (currentMenu == 'products') {
         $(window).bottom({proximity: 0.05});
         $(window).bind("bottom", function() {
             if (end_flag == 0) {
@@ -49,6 +48,7 @@ $(function() {
                             processData: false,
                             contentType: false,
                         }).done(function(data) {
+                            console.log(page);
                             $(".loading").html('');
                             if (page <= endPage) {
                                 //$("#userDisp").append(data);
