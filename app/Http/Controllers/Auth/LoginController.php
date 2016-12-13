@@ -52,4 +52,16 @@ class LoginController extends Controller
         }
     }
     
+    //Socialiteを使用
+    public function redirectToProvider() {
+        return Socialite::driver('twitter')->redirect();
+    }
+    
+    public function handleProviderCallback() {
+        $user = Socialite::driver('twitter')->user();
+        
+        Auth::login($user);
+        return redirect('/');
+    }
+    
 }

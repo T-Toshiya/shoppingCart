@@ -60,6 +60,7 @@ $(function() {
                             } 
                         }).fail(function(data) {
                             console.log('fail');
+                            alert('通信エラー');
                         });
                     })
                 }
@@ -147,7 +148,6 @@ $(function() {
             processData: false,
             contentType: false,
         }).done(function(orderHistory) {
-            console.log(orderHistory);
             $("#userDisp").html(orderHistory);
             //$("#productList").html(orderHistory);
             $("#currentMenu").removeAttr('id');
@@ -186,12 +186,15 @@ $(function() {
             processData: false,
             contentType: false,
         }).done(function(productsList) {
+            console.log(productsList);
             //$("#userDisp").html(productsList);
             $("#productList").html(productsList);
             
             //自動読み込みしないようにする
             $(window).unbind("bottom");
             init();
+        }).fail(function(error) {
+            alert('通信エラー');
         });
     });
     

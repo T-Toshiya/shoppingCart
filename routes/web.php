@@ -12,6 +12,7 @@
 */
 
 Route::get('/', 'ProductsController@index');
+
 Route::post('/insertCart', 'ProductsController@insertCart');
 //Route::post('/insertCart', function() {
 //    return redirect('/login');
@@ -32,6 +33,13 @@ Route::post('/deleteOrderHistory', 'ProductsController@deleteOrderHistory');
 //Amazonカート用
 Route::get('/amazon', 'ProductsController@amazon');
 Route::post('/insertAmazonCart', 'ProductsController@insertAmazonCart');
+
+//twitterlogin
+//Route::get('/loginWithTwitter', 'ProductsController@loginWithTwitter');
+//Route::get('/getAccessToken', 'ProductsController@getAccessToken');
+Route::get('/twitter', 'ProductsController@redirectToProvider');
+Route::get('/twitter/callback', 'ProductsController@handleProviderCallback');
+Route::post('/snsRegister', 'Auth\RegisterController@snsRegister');
 
 
 Auth::routes();

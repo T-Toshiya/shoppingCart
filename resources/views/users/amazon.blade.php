@@ -2,19 +2,12 @@
     <div id="product_{{ $item->ASIN }}">
         <li>
             <div class="productContainer"> 
-
-                <div id="productImage_{{ $item->ASIN }}" class="product productImage">
-                    <img src="{{ $item->SmallImage->URL }}" height="100" width="100">
-                </div>
-                <div id="productName_{{ $item->ASIN }}" class="product productName">
-                {{ $item->ItemAttributes->Title }}<br><br>
-                {{ $item->ItemAttributes->Author }}
-                </div>
+                <div id="productImage_{{ $item->ASIN }}" class="product productImage"><img src="{{ $item->SmallImage->URL }}" height="100" width="100"></div>
+                <div id="productName_{{ $item->ASIN }}" class="product productName">{{ $item->ItemAttributes->Title }}</div>
                 <div id="productPrice_{{ $item->ASIN }}" class="product productPrice">{{ $item->OfferSummary->LowestNewPrice->FormattedPrice }}</div>
             </div>
 
             <div class="insertCart">
-                
                 数量：<select name="num" id="productNum_{{ $item->ASIN }}" class="productNum">
                 @for ($i = 1; $i < 11; $i++)
                 @if ($i == 1)
@@ -32,7 +25,9 @@
                 @else
                 <button type="submit" id="insertCartBtn_{{ $item->ASIN }}" class="insertAmazonCartBtn">カートに入れる</button>
                 @endif
-                
+                <p>
+                <a href="https://twitter.com/share" class="twitter-share-button" data-text="{{ $item->ItemAttributes->Title }} {{ $item->ItemAttributes->Author }}" data-url="http://192.168.33.10/" data-lang="ja" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+                </p>
             </div>
         </li>
 

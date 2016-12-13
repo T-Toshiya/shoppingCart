@@ -88,6 +88,10 @@
     border-bottom: 1px solid #AAA;
 }
 
+.twitter-share-button {
+    margin: 10px 0;
+}
+
 /*
 .product {
     display: inline;

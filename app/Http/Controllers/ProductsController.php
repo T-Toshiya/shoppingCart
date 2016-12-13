@@ -10,8 +10,11 @@ use App\OrderDetail;
 use App\OrderAmazonDetail;
 use App\AmazonXml;
 use App\User;
+use App\TwitterUser;
 use DB;
 use Illuminate\Support\Facades\Auth;
+use Socialite;
+use Illuminate\Routing\Controller;
 
 //use Illuminate\Http\RedirectResponse
 
@@ -66,6 +69,10 @@ class ProductsController extends Controller
         
         //return view('users.index', ['products' => $products, 'totalNum' => $totalNum, 'count' => $count]);
         return view('users.indexAmazon', ['items' => $results, 'totalNum' => $totalNum]);
+    }
+    
+    public function test() {
+        return 'ok';
     }
     
     public function amazon() {
@@ -159,6 +166,184 @@ class ProductsController extends Controller
         
         return $request_uri;
     }
+    
+    //Socialiteを使用
+    public function redirectToProvider() {
+        return Socialite::driver('twitter')->redirect();
+    }
+    
+    public function handleProviderCallback() {
+        $user = Socialite::driver('twitter')->user();
+        
+        $tuser = User::where('name', '=', $user->getNickname())->get();
+        
+            if (count($tuser) == 0) {
+                
+                return view('auth.emailRegister')->with('userInfo', $user);
+                
+                $newUser = new User();
+                //$newUser->userId = $userId[1];
+                $newUser->name = $user->getNickname();
+                $newUser->email = 'dummy';
+                $newUser->password = 'dummy';
+                $newUser->save();
+                
+                $userId = $newUser->id;
+            } else {
+                $userId = $tuser[0]->id;
+            }
+        Auth::loginUsingId($userId);
+        
+        return redirect('/');
+    }
+
+    //地道にやったが上の方が簡単    
+//    public function loginWithTwitter() {
+//        $token = $this->getRequestToken();
+//        $token = explode('&', $token);
+//        $oauth_token = explode('=', $token[0]);
+//        $oauth_token_secret = explode('=', $token[1]);
+//        
+//        // セッション[$_SESSION["oauth_token_secret"]]に[oauth_token_secret]を保存する
+//        session_start() ;
+//        session_regenerate_id( true ) ;
+//        $_SESSION['oauth_token_secret'] = $oauth_token_secret[1] ;
+//        // ユーザーを認証画面へ飛ばす
+//        //return header( 'Location: https://api.twitter.com/oauth/authorize?oauth_token=' . $oauth_token[1] );
+//        return redirect('https://api.twitter.com/oauth/authorize?oauth_token='.$oauth_token[1]);
+//    }
+    
+//    public function getRequestToken() {
+//        $api_key = "BgUCzhLCaJ9tTisgrIAXflofn";
+//        $api_secret = "N8apr76C9zNjFEDto3peX6diC4QlpLnalk8jshO3Yd3rBN0TEz";
+//        $accessToken = "719863859192856576-h8k4iSPDiFmB7OMcTV3i48zcR6jP4ym";
+//        $secretToken = "";
+//        $secret_key = rawurlencode($api_secret)."&";
+//        $endpoint = "https://api.twitter.com/oauth/request_token";
+//        $requestMethod = "POST";
+//        
+//        $params = array(
+//            "oauth_callback" => "http://192.168.33.10:8000/getAccessToken",
+//            "oauth_consumer_key" => $api_key,
+//            "oauth_nonce" => microtime(),
+//            "oauth_signature_method" => "HMAC-SHA1",
+//            "oauth_timestamp" => time(),
+////            "oauth_token" => $accessToken,
+//            "oauth_version" => "1.0"
+//        );
+//        
+//        $pairs = array();
+//        
+//        foreach ($params as $key => $value) {
+//            if ($key == 'oauth_callback') {
+//                continue;
+//            }
+//            $params[$key] = rawurlencode($value);
+//        }
+//        
+//        ksort($params);
+//        
+//        //$canonical_query_string = join("&", $pairs);
+//        $canonical_query_string = http_build_query($params, '', '&');
+//        
+//        $string_to_sign = rawurlencode($requestMethod)."&".rawurlencode($endpoint)."&".rawurlencode($canonical_query_string);
+//        
+//        $signature = base64_encode(hash_hmac("sha1", $string_to_sign, $secret_key, true));
+//        
+//        $request_uri = $endpoint.'?'.$canonical_query_string.'&oauth_signature='.rawurlencode($signature);
+//        
+//        $params['oauth_signature'] = $signature;
+//        
+//        $header_params = http_build_query($params, '', ',');
+//        
+//        $context = array(
+//            'http' => array(
+//                'method' => $requestMethod , //リクエストメソッド
+//                'header' => array(			  //カスタムヘッダー
+//                    'Authorization: OAuth ' . $header_params ,
+//                ) ,
+//            ) ,
+//        ) ;
+//        
+//        $response = file_get_contents( $endpoint , false , stream_context_create( $context ) ) ;
+//        
+//        return $response;
+//    }
+    
+//    public function getAccessToken() {
+//        
+//        if( isset( $_GET['oauth_token'] ) && !empty( $_GET['oauth_token'] ) && isset( $_GET['oauth_verifier'] ) && !empty( $_GET['oauth_verifier'] ) ) {
+//            // アクセストークンを取得するための処理
+//            $api_key = "BgUCzhLCaJ9tTisgrIAXflofn";
+//            $api_secret = "N8apr76C9zNjFEDto3peX6diC4QlpLnalk8jshO3Yd3rBN0TEz";
+//            $accessToken = "719863859192856576-h8k4iSPDiFmB7OMcTV3i48zcR6jP4ym";
+//            $endpoint = "https://api.twitter.com/oauth/access_token";
+//            $requestMethod = "POST";
+//
+//            $params = array(
+//                "oauth_consumer_key" => $api_key,
+//                "oauth_token" => $_GET['oauth_token'],
+//                "oauth_verifier" => $_GET['oauth_verifier'],
+//                "oauth_nonce" => microtime(),
+//                "oauth_signature_method" => "HMAC-SHA1",
+//                "oauth_timestamp" => time(),
+//                "oauth_version" => "1.0"
+//            );
+//
+//            session_start();
+//            $request_token_secret = $_SESSION['oauth_token_secret'];
+//            $secret_key = rawurlencode($api_secret)."&".$request_token_secret;
+//
+//            $pairs = array();
+//
+//            foreach ($params as $key => $value) {
+//                if ($key == 'oauth_callback') {
+//                    continue;
+//                }
+//                $params[$key] = rawurlencode($value);
+//            }
+//
+//            ksort($params);
+//
+//            //$canonical_query_string = join("&", $pairs);
+//            $canonical_query_string = http_build_query($params, '', '&');
+//
+//            $string_to_sign = rawurlencode($requestMethod)."&".rawurlencode($endpoint)."&".rawurlencode($canonical_query_string);
+//
+//            $signature = base64_encode(hash_hmac("sha1", $string_to_sign, $secret_key, true));
+//
+//            $params['oauth_signature'] = $signature;
+//
+//            $header_params = http_build_query($params, '', ',');
+//
+//            $context = array(
+//                'http' => array(
+//                    'method' => $requestMethod , //リクエストメソッド
+//                    'header' => array(			  //カスタムヘッダー
+//                        'Authorization: OAuth ' . $header_params ,
+//                    ) ,
+//                ) ,
+//            ) ;
+//
+//            $response = file_get_contents( $endpoint , false , stream_context_create( $context ) ) ;
+//            
+//            $authInfo = explode('&', $response);
+//            $oauth_token = explode('=', $authInfo[0]);
+//            $oauth_token_secret = explode('=', $authInfo[1]);
+//            $userId = explode('=', $authInfo[2]);
+//            $userName = explode('=', $authInfo[3]);
+//            $user = TwitterUser::where('userName', '=', $userName[1])->get();
+//
+//            if (count($user) == 0) {
+//                $newUser = new TwitterUser();
+//                $newUser->userId = $userId[1];
+//                $newUser->userName = $userName[1];
+//                $newUser->save();
+//            } 
+//            Auth::login();
+//            return redirect('/');
+//        }
+//    }
     
     //カートに商品を入れる
     public function insertCart(Request $request) {
@@ -390,7 +575,7 @@ class ProductsController extends Controller
     public function search(Request $request) {
         $searchText = $request->searchText;
         $searchContent = $request->searchContent;
-
+        //商品検索の場合
         if ($searchContent == "searchProduct") {
             if ($searchText == "") {
                 //$products = Product::orderBy('id', 'desc')->paginate(10);
@@ -403,7 +588,6 @@ class ProductsController extends Controller
                 //amazon版
                 $url = $this->amazonApi(1, $searchText);
             }
-            sleep(1);
             $xml = file_get_contents($url);
             $result = simplexml_load_string($xml);
             $results = array();
@@ -414,11 +598,15 @@ class ProductsController extends Controller
             
             //return view('users.productList')->with('products', $products);
         } else {
+            //注文検索の場合
+            
+            //ユーザーIDから注文履歴の取得
+            $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->paginate(10);
+            $orderDetails = array();
+            
             if ($searchText == "") {
+                //検索ワードなしで検索ボタンを押した場合、注文履歴を全て表示
                 //$products = OrderHistory::orderBy('id', 'desc')->paginate(10);
-                
-                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->paginate(10);
-                $orderDetails = array();
 
                 //amazon用
                 foreach ($orderHistories as $orderHistory) {
@@ -427,49 +615,34 @@ class ProductsController extends Controller
                     }
                     $orderDetails[] = $orderHistory->orderAmazonDetails;
                 }
-
-                //全履歴を取得
-                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->get();
-
-                $orderCounts = array();
-
-                foreach ($orderHistories as $orderHistory) {
-                    $orderCounts[] = $orderHistory->orderAmazonDetails;
-                }
-
-                $lastPage = ceil(count($orderCounts)/10);
-
-                return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('lastPage', $lastPage);
             } else {
+                //検索ワード有りで検索した場合、
                 //$products = OrderHistory::where('productName', 'like', '%'.$searchText.'%')->orderBy('id', 'desc')->paginate(10);
-                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->paginate(10);
-                $orderDetails = array();
 
                 //amazon用
                 foreach ($orderHistories as $orderHistory) {
-                    $searchItem = $orderHistory->orderAmazonDetails->where('productName', '=', $searchText);
-                    
-                    if (count($orderHistory->orderAmazonDetails) == 0) {
+                    //検索ワードに一致するものを注文明細から取ってくる
+                    //$searchItem = $orderHistory->orderAmazonDetails->where('productName', '=', $searchText);
+                    //$searchItem = $orderHistory->orderAmazonDetails->where('productName', 'like', '%'.$searchText.'%'); 
+                    $searchItem = OrderAmazonDetail::where('orderNum', '=', $orderHistory->id)->where('productName', 'like', '%'.$searchText.'%')->get();
+                    if (count($searchItem) == 0) {
                         continue;
                     } 
-                    return $searchItem;
                     $orderDetails[] = $searchItem;
                 }
-                return $orderDetails;
-                //全履歴を取得
-                $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->get();
-            
-                $orderCounts = array();
-
-                foreach ($orderHistories as $orderHistory) {
-                    $orderCounts[] = $orderHistory->orderAmazonDetails;
-                }
-
-                $lastPage = ceil(count($orderCounts)/10);
-
-                return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('lastPage', $lastPage);
             }
-            
+            //全履歴を取得
+            $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->get();
+
+            $orderCounts = array();
+
+            foreach ($orderHistories as $orderHistory) {
+                $orderCounts[] = $orderHistory->orderAmazonDetails;
+            }
+
+            $lastPage = ceil(count($orderCounts)/10);
+
+            return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('lastPage', $lastPage);  
         }
     }
     
@@ -526,6 +699,7 @@ class ProductsController extends Controller
     //amazon用自動ページング
     public function autoPaging(Request $request) {
         
+        //現在のページ、検索ワード
         $url = $this->amazonApi($request->currentPage, $request->searchText);
         if ($request->searchText == "") {
             //$products = Product::orderBy('id', 'desc')->paginate(10);

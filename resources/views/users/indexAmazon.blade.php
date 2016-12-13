@@ -14,7 +14,8 @@ shoppingCart
 @if (Route::has('login'))
 <div class="top-right links">
     <a href="{{ url('/login') }}" class="authLink">Login</a>
-    <a href="{{ url('/register') }}" class="authLink">Register</a>
+    <a href="{{ url('/register') }}" class="authLink">Register</a><br>
+    <a href="{{ url('/twitter') }}"><img src="images/sign-in-with-twitter.png"></a>
 </div>
 @endif
 <ul>

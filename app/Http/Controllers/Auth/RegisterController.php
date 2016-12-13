@@ -6,6 +6,7 @@ use App\User;
 use Validator;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends Controller
 {
@@ -67,5 +68,16 @@ class RegisterController extends Controller
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+    }
+    
+    public function snsRegister() {
+        $snsUser = new User();
+        $snsUser->name = $_POST['name'];
+        //$snsUser->name = $data['name'];
+        $snsUser->email = $_POST['email'];
+        //$snsUser->email = $data['email'];
+        $snsUser->save();
+        Auth::loginUsingId($snsUser->id);
+        return redirect('/');
     }
 }
