@@ -37,8 +37,11 @@ Route::post('/insertAmazonCart', 'ProductsController@insertAmazonCart');
 //twitterlogin
 //Route::get('/loginWithTwitter', 'ProductsController@loginWithTwitter');
 //Route::get('/getAccessToken', 'ProductsController@getAccessToken');
-Route::get('/twitter', 'ProductsController@redirectToProvider');
-Route::get('/twitter/callback', 'ProductsController@handleProviderCallback');
+//Route::get('/twitter', 'ProductsController@redirectToProvider');
+//Route::get('/social/{sns}', 'ProductsController@redirectToProvider');
+Route::get('/social/{sns}', 'Auth\LoginController@redirectToProvider');
+//Route::get('/callback/{sns}', 'ProductsController@handleProviderCallback');
+Route::get('/callback/{sns}', 'Auth\LoginController@handleProviderCallback');
 Route::post('/snsRegister', 'Auth\RegisterController@snsRegister');
 
 

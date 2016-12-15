@@ -36,8 +36,8 @@ class ProductsController extends Controller
         if (count($xmlData) == 0) {
             $xml = file_get_contents($url);
             $newXml = new AmazonXml();
-            $newXml->xml = $xml;
             $newXml->page = 1;
+            $newXml->xml = $xml;
             $newXml->save();
         } else {
             $timestamp = $xmlData[0]->updated_at->getTimestamp();
@@ -71,13 +71,7 @@ class ProductsController extends Controller
         return view('users.indexAmazon', ['items' => $results, 'totalNum' => $totalNum]);
     }
     
-    public function test() {
-        return 'ok';
-    }
-    
     public function amazon() {
-        
-        
         $url = $this->amazonApi();
     
         //結構な頻度で取得失敗→APIの叩きすぎ
@@ -168,14 +162,23 @@ class ProductsController extends Controller
     }
     
     //Socialiteを使用
-    public function redirectToProvider() {
-        return Socialite::driver('twitter')->redirect();
+    public function redirectToProvider(Request $request) {
+        if ($request->sns == 'twitter') {
+            return Socialite::driver('twitter')->redirect();
+        } elseif ($request->sns == 'facebook') {
+            return Socialite::driver('facebook')->redirect();
+        }
     }
     
-    public function handleProviderCallback() {
-        $user = Socialite::driver('twitter')->user();
+    public function handleProviderCallback(Request $request) {
         
-        $tuser = User::where('name', '=', $user->getNickname())->get();
+        if ($request->sns == 'twitter') {
+            $user = Socialite::driver('twitter')->user();
+        } elseif ($request->sns == 'facebook') {
+            $user = Socialite::driver('facebook')->user();
+        }
+        
+        $tuser = User::where('name', '=', $user->name)->get();
         
             if (count($tuser) == 0) {
                 
@@ -183,7 +186,7 @@ class ProductsController extends Controller
                 
                 $newUser = new User();
                 //$newUser->userId = $userId[1];
-                $newUser->name = $user->getNickname();
+                $newUser->name = $user->name;
                 $newUser->email = 'dummy';
                 $newUser->password = 'dummy';
                 $newUser->save();
@@ -197,154 +200,7 @@ class ProductsController extends Controller
         return redirect('/');
     }
 
-    //地道にやったが上の方が簡単    
-//    public function loginWithTwitter() {
-//        $token = $this->getRequestToken();
-//        $token = explode('&', $token);
-//        $oauth_token = explode('=', $token[0]);
-//        $oauth_token_secret = explode('=', $token[1]);
-//        
-//        // セッション[$_SESSION["oauth_token_secret"]]に[oauth_token_secret]を保存する
-//        session_start() ;
-//        session_regenerate_id( true ) ;
-//        $_SESSION['oauth_token_secret'] = $oauth_token_secret[1] ;
-//        // ユーザーを認証画面へ飛ばす
-//        //return header( 'Location: https://api.twitter.com/oauth/authorize?oauth_token=' . $oauth_token[1] );
-//        return redirect('https://api.twitter.com/oauth/authorize?oauth_token='.$oauth_token[1]);
-//    }
-    
-//    public function getRequestToken() {
-//        $api_key = "BgUCzhLCaJ9tTisgrIAXflofn";
-//        $api_secret = "N8apr76C9zNjFEDto3peX6diC4QlpLnalk8jshO3Yd3rBN0TEz";
-//        $accessToken = "719863859192856576-h8k4iSPDiFmB7OMcTV3i48zcR6jP4ym";
-//        $secretToken = "";
-//        $secret_key = rawurlencode($api_secret)."&";
-//        $endpoint = "https://api.twitter.com/oauth/request_token";
-//        $requestMethod = "POST";
-//        
-//        $params = array(
-//            "oauth_callback" => "http://192.168.33.10:8000/getAccessToken",
-//            "oauth_consumer_key" => $api_key,
-//            "oauth_nonce" => microtime(),
-//            "oauth_signature_method" => "HMAC-SHA1",
-//            "oauth_timestamp" => time(),
-////            "oauth_token" => $accessToken,
-//            "oauth_version" => "1.0"
-//        );
-//        
-//        $pairs = array();
-//        
-//        foreach ($params as $key => $value) {
-//            if ($key == 'oauth_callback') {
-//                continue;
-//            }
-//            $params[$key] = rawurlencode($value);
-//        }
-//        
-//        ksort($params);
-//        
-//        //$canonical_query_string = join("&", $pairs);
-//        $canonical_query_string = http_build_query($params, '', '&');
-//        
-//        $string_to_sign = rawurlencode($requestMethod)."&".rawurlencode($endpoint)."&".rawurlencode($canonical_query_string);
-//        
-//        $signature = base64_encode(hash_hmac("sha1", $string_to_sign, $secret_key, true));
-//        
-//        $request_uri = $endpoint.'?'.$canonical_query_string.'&oauth_signature='.rawurlencode($signature);
-//        
-//        $params['oauth_signature'] = $signature;
-//        
-//        $header_params = http_build_query($params, '', ',');
-//        
-//        $context = array(
-//            'http' => array(
-//                'method' => $requestMethod , //リクエストメソッド
-//                'header' => array(			  //カスタムヘッダー
-//                    'Authorization: OAuth ' . $header_params ,
-//                ) ,
-//            ) ,
-//        ) ;
-//        
-//        $response = file_get_contents( $endpoint , false , stream_context_create( $context ) ) ;
-//        
-//        return $response;
-//    }
-    
-//    public function getAccessToken() {
-//        
-//        if( isset( $_GET['oauth_token'] ) && !empty( $_GET['oauth_token'] ) && isset( $_GET['oauth_verifier'] ) && !empty( $_GET['oauth_verifier'] ) ) {
-//            // アクセストークンを取得するための処理
-//            $api_key = "BgUCzhLCaJ9tTisgrIAXflofn";
-//            $api_secret = "N8apr76C9zNjFEDto3peX6diC4QlpLnalk8jshO3Yd3rBN0TEz";
-//            $accessToken = "719863859192856576-h8k4iSPDiFmB7OMcTV3i48zcR6jP4ym";
-//            $endpoint = "https://api.twitter.com/oauth/access_token";
-//            $requestMethod = "POST";
-//
-//            $params = array(
-//                "oauth_consumer_key" => $api_key,
-//                "oauth_token" => $_GET['oauth_token'],
-//                "oauth_verifier" => $_GET['oauth_verifier'],
-//                "oauth_nonce" => microtime(),
-//                "oauth_signature_method" => "HMAC-SHA1",
-//                "oauth_timestamp" => time(),
-//                "oauth_version" => "1.0"
-//            );
-//
-//            session_start();
-//            $request_token_secret = $_SESSION['oauth_token_secret'];
-//            $secret_key = rawurlencode($api_secret)."&".$request_token_secret;
-//
-//            $pairs = array();
-//
-//            foreach ($params as $key => $value) {
-//                if ($key == 'oauth_callback') {
-//                    continue;
-//                }
-//                $params[$key] = rawurlencode($value);
-//            }
-//
-//            ksort($params);
-//
-//            //$canonical_query_string = join("&", $pairs);
-//            $canonical_query_string = http_build_query($params, '', '&');
-//
-//            $string_to_sign = rawurlencode($requestMethod)."&".rawurlencode($endpoint)."&".rawurlencode($canonical_query_string);
-//
-//            $signature = base64_encode(hash_hmac("sha1", $string_to_sign, $secret_key, true));
-//
-//            $params['oauth_signature'] = $signature;
-//
-//            $header_params = http_build_query($params, '', ',');
-//
-//            $context = array(
-//                'http' => array(
-//                    'method' => $requestMethod , //リクエストメソッド
-//                    'header' => array(			  //カスタムヘッダー
-//                        'Authorization: OAuth ' . $header_params ,
-//                    ) ,
-//                ) ,
-//            ) ;
-//
-//            $response = file_get_contents( $endpoint , false , stream_context_create( $context ) ) ;
-//            
-//            $authInfo = explode('&', $response);
-//            $oauth_token = explode('=', $authInfo[0]);
-//            $oauth_token_secret = explode('=', $authInfo[1]);
-//            $userId = explode('=', $authInfo[2]);
-//            $userName = explode('=', $authInfo[3]);
-//            $user = TwitterUser::where('userName', '=', $userName[1])->get();
-//
-//            if (count($user) == 0) {
-//                $newUser = new TwitterUser();
-//                $newUser->userId = $userId[1];
-//                $newUser->userName = $userName[1];
-//                $newUser->save();
-//            } 
-//            Auth::login();
-//            return redirect('/');
-//        }
-//    }
-    
+
     //カートに商品を入れる
     public function insertCart(Request $request) {
         if (Auth::guest()) {

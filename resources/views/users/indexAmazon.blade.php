@@ -15,11 +15,12 @@ shoppingCart
 <div class="top-right links">
     <a href="{{ url('/login') }}" class="authLink">Login</a>
     <a href="{{ url('/register') }}" class="authLink">Register</a><br>
-    <a href="{{ url('/twitter') }}"><img src="images/sign-in-with-twitter.png"></a>
+    <a href="{{ url('/social/twitter') }}"><img src="images/sign-in-with-twitter.png"></a>
+    <a href="{{ url('/social/facebook') }}"><img src="images/login_facebook.png"></a>
 </div>
 @endif
 <ul>
-    <li class="menu" id="currentMenu" style="display:none"><a href="javascript:void(0)" id="products"></a></li>
+    <li class="menu" id="currentMenu" style="display:none"><div id="products"></div></li>
 </ul>
 
 <div id="userMenu">
@@ -30,10 +31,12 @@ shoppingCart
 </div>
 
 <hr>
-<div id="userDisp" data-lastpage="">
+<div class="lastPage" data-lastpage=6>
+<div id="userDisp">
 <ul id="productList" class="productList" style="list-style:none;">
 @include('users.amazon')
 </ul>
+</div>
 </div>
 @else
 <!--ログインユーザーの場合-->

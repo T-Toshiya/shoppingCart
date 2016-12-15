@@ -23,6 +23,7 @@ $(function() {
         }
         var searchText = $("#searchText").val();
         //var searchContent = $("[name=search]:checked").val();
+        console.log(endPage);
         if (currentMenu == 'products') {
         $(window).bottom({proximity: 0.05});
         $(window).bind("bottom", function() {

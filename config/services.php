@@ -38,7 +38,13 @@ return [
     'twitter' => [
         'client_id' => 'BgUCzhLCaJ9tTisgrIAXflofn',
         'client_secret' => 'N8apr76C9zNjFEDto3peX6diC4QlpLnalk8jshO3Yd3rBN0TEz',
-        'redirect' => 'http://192.168.33.10:8000/twitter/callback',
+        'redirect' => 'http://192.168.33.10:8000/callback/twitter',
+    ],
+    
+    'facebook' => [
+        'client_id' => '1203789486382619',
+        'client_secret' => '027c180c71872c0f3c1fe62467480ead',
+        'redirect' => 'http://192.168.33.10:8000/callback/facebook',
     ],
 
 ];

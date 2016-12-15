@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Socialite;
+use App\User;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -53,14 +57,30 @@ class LoginController extends Controller
     }
     
     //Socialiteを使用
-    public function redirectToProvider() {
-        return Socialite::driver('twitter')->redirect();
+    public function redirectToProvider(Request $request) {
+        if ($request->sns == 'twitter') {
+            return Socialite::driver('twitter')->redirect();
+        } elseif ($request->sns == 'facebook') {
+            return Socialite::driver('facebook')->redirect();
+        }
     }
     
-    public function handleProviderCallback() {
-        $user = Socialite::driver('twitter')->user();
-        
-        Auth::login($user);
+    public function handleProviderCallback(Request $request) {
+        if ($request->sns == 'twitter') {
+            $user = Socialite::driver('twitter')->user();
+        } elseif ($request->sns == 'facebook') {
+            $user = Socialite::driver('facebook')->user();
+        }
+
+        $tuser = User::where('name', '=', $user->name)->get();
+
+        if (count($tuser) == 0) {
+            return view('auth.emailRegister')->with('userInfo', $user);
+        } else {
+            $userId = $tuser[0]->id;
+        }
+        Auth::loginUsingId($userId);
+
         return redirect('/');
     }
     

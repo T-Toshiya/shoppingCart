@@ -25,9 +25,10 @@
                 @else
                 <button type="submit" id="insertCartBtn_{{ $item->ASIN }}" class="insertAmazonCartBtn">カートに入れる</button>
                 @endif
-                <p>
+                <div class="twitter">
                 <a href="https://twitter.com/share" class="twitter-share-button" data-text="{{ $item->ItemAttributes->Title }} {{ $item->ItemAttributes->Author }}" data-url="http://192.168.33.10/" data-lang="ja" data-show-count="false">Tweet</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
-                </p>
+                </div>
+                <div class="fb-share-button" data-href="http://192.168.33.10/" data-layout="button" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2F192.168.33.10%3A8000%2F&amp;src=sdkpreparse">シェア</a></div>
             </div>
         </li>
 
