@@ -9,7 +9,10 @@ class OrderAmazonDetail extends Model
     //
     protected $fillable = ['orderNum', 'productId', 'productName', 'productPrice', 'imagePath', 'orderQuantity'];
     
+//    public function orderHistories() {
+//        return $this->belongsTo('App\OrderHistory', 'orderNum');
+//    }
     public function orderHistories() {
-        return $this->belongsTo('App\OrderHistory', 'orderNum');
+        return $this->belongsTo('App\OrderHistory', 'id');
     }
 }

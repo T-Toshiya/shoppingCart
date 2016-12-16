@@ -23,7 +23,6 @@ $(function() {
         }
         var searchText = $("#searchText").val();
         //var searchContent = $("[name=search]:checked").val();
-        console.log(endPage);
         if (currentMenu == 'products') {
         $(window).bottom({proximity: 0.05});
         $(window).bind("bottom", function() {
@@ -49,10 +48,8 @@ $(function() {
                             processData: false,
                             contentType: false,
                         }).done(function(data) {
-                            console.log(page);
                             $(".loading").html('');
                             if (page <= endPage) {
-                                //$("#userDisp").append(data);
                                 $("#productList").append(data);
                                 obj.data('loading', false);
                             } else {
@@ -85,7 +82,6 @@ $(function() {
             processData: false,
             contentType: false,
         }).done(function(productsList) {
-            console.log(productsList);
             $("#productList").html(productsList);
             $("#currentMenu").removeAttr('id');
             $("#products").parent('li').attr('id', 'currentMenu');
@@ -96,8 +92,6 @@ $(function() {
             $("#deleteOrderHistory").hide();
             $(window).unbind("bottom");
             init();
-            //insertCart();
-            //showCart();
         }).fail(function(error) {
             alert('不正アクセスエラー');
         });
@@ -127,7 +121,6 @@ $(function() {
             $("#deleteOrderHistory").hide();
             $(window).unbind("bottom");
             init();
-            orderConfirm();
         }).fail(function(error) {
             alert('不正アクセスエラー');
         });
@@ -150,7 +143,6 @@ $(function() {
             contentType: false,
         }).done(function(orderHistory) {
             $("#userDisp").html(orderHistory);
-            //$("#productList").html(orderHistory);
             $("#currentMenu").removeAttr('id');
             $("#orderHistory").parent('li').attr('id', 'currentMenu');
             $("#searchBtn").val("注文検索");
@@ -160,8 +152,6 @@ $(function() {
             $("#deleteOrderHistory").show();
             //$(window).unbind("bottom");
             init();
-            //insertCart();
-            //showCart();
         }).fail(function(error) {
             alert('不正アクセスエラー');
         });
@@ -188,7 +178,6 @@ $(function() {
             contentType: false,
         }).done(function(productsList) {
             console.log(productsList);
-            //$("#userDisp").html(productsList);
             $("#productList").html(productsList);
             
             //自動読み込みしないようにする
@@ -220,7 +209,6 @@ $(function() {
         }).done(function(totalNum) {
             $("#cart").html("<a href='javascript:void(0)'>カート("+totalNum+"点)</a>");
             init();
-            //showCart();
         }).fail(function(error) {
             console.log(error);
             alert('不正アクセスエラー');
@@ -237,7 +225,6 @@ $(function() {
         var productId = $(this).prev("input").val();
         var productName = $("#productName_"+productId).html();
         var productPrice = $("#productPrice_"+productId).html().substr(1).split(',').join('');
-        console.log(productPrice);
         var imagePath = $("#productImage_"+productId+ " img").attr('src');
         var selectedNum = $("#productNum_" + productId).val();
         var fd = new FormData();
@@ -262,37 +249,33 @@ $(function() {
         });
     });
     
-    function orderConfirm() {
-        $("#orderConfirm").click(function() {
-            if (confirm('注文を確定しますか')) {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                var fd = new FormData();
-                $.ajax({
-                    type: 'POST',
-                    url: '/confirm',
-                    data: fd,
-                    processData: false,
-                    contentType: false,
-                }).done(function(productsList) {
-                    alert('注文が確定しました');
-                    $("#cart").html("カート(0点)");
-                    //$("#userDisp").html(productsList);
-                    $("#productList").html(productsList);
-                    $("#currentMenu").removeAttr('id');
-                    $("#products").parent('li').attr('id', 'currentMenu');
-                    init();
-                    //insertCart();
-                    //showCart();
-                }).fail(function(error) {
-                    alert('不正アクセスエラー');
-                });
-            }
-        });
-    }
+    $(document).on('click', '#orderConfirm', function() {
+        if (confirm('注文を確定しますか')) {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            var fd = new FormData();
+            $.ajax({
+                type: 'POST',
+                url: '/confirm',
+                data: fd,
+                processData: false,
+                contentType: false,
+            }).done(function(productsList) {
+                alert('注文が確定しました');
+                $("#cart").html("カート(0点)");
+                //$("#userDisp").html(productsList);
+                $("#productList").html(productsList);
+                $("#currentMenu").removeAttr('id');
+                $("#products").parent('li').attr('id', 'currentMenu');
+                init();
+            }).fail(function(error) {
+                alert('不正アクセスエラー');
+            });
+        }
+    });
     
     //一番上に戻る
     var pageTop = $("#pageTop");
@@ -358,10 +341,13 @@ function changeCart(id, productId) {
     });
     var selectedId = productId;
     var selectedNum = $("#cartProductNum_"+id+" option:selected").val();
+    var nowPriceText = $("#total").text().split('¥');
+    var nowPrice = nowPriceText[1].split(',').join('');
     
     var fd = new FormData();
     fd.append("selectedId", selectedId);
     fd.append("selectedNum", selectedNum);
+    fd.append("nowPrice", nowPrice);
     $.ajax({
         type: 'POST',
         url: '/changeCart',
