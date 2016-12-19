@@ -67,12 +67,12 @@ shoppingCart
     <li class="menu">
         <div id="orderHistory"><a href="javascript:void(0)">注文履歴</a></div>
     </li>
-    <button id="deleteOrderHistory" type="submit" onclick="deleteOrderHistory()" style="display: none;">履歴削除</button>
+    <button id="deleteOrderHistory" type="submit" style="display: none;">履歴削除</button>
     </ul>
 </div>
 
 <hr>
-<div class="lastPage" data-lastpage=6>
+<!--<div class="lastPage" data-lastpage=6>-->
 <div id="userDisp">
 <ul id="productList" class="productList" style="list-style:none;">
 @include('users.amazon')

@@ -15,11 +15,7 @@ class CreateOrderHistoriesTable extends Migration
     {
         Schema::create('order_histories', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('userName');
-            $table->text('productName');
-            $table->integer('totalNum');
-            $table->integer('totalMoney');
-            $table->text('imagePath');
+            $table->integer('userId');
             $table->timestamps();
         });
     }

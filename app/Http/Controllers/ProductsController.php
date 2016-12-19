@@ -32,28 +32,10 @@ class ProductsController extends Controller
 
         $results = $this->getItem($xml);
         
+        $totalNum = 0;
+        
         //カートに入っている商品数の取得 
         if (Auth::check()) {
-/*ok*/
-            $productsInCart = Cart::where('userName', '=', Auth::user()->name)->get();
-            $totalNum = $productsInCart->sum('productNum');
-/**/
-        }
-        
-        return view('users.indexAmazon', ['items' => $results, 'totalNum' => $totalNum]);
-    }
-    
-    public function amazon() {
-        $url = $this->amazonApi();
-    
-        //結構な頻度で取得失敗→APIの叩きすぎ→xmlをDBに保存する(適度に更新)
-        $xmlData = AmazonXml::where('page', '=', 1)->first();
-        
-        $xml = $this->getXml($url, $xmlData, 1);
-        $results = $this->getItem($xml);
-        
-        //カートに入っている商品数の取得
-        if (! Auth::guest()) {
             $productsInCart = Cart::where('userName', '=', Auth::user()->name)->get();
             $totalNum = $productsInCart->sum('productNum');
         }
@@ -64,7 +46,6 @@ class ProductsController extends Controller
     public function amazonApi($page = 1, $searchText='') {
         $access_key_id = "AKIAII4CP5FHAAWO44WA";
         $secret_key = "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";
-        
         
         $endpoint = "ecs.amazonaws.jp";
         
@@ -134,20 +115,17 @@ class ProductsController extends Controller
         $deleteProduct = Cart::findOrFail($request->deleteId);
         $deleteProduct->delete();
         
-        $productsInCart = Cart::where('userName', '=', Auth::user()->name)->get();
-        $totalNum = $productsInCart->sum('productNum');
-        
-        //↓ここまだ
-        $totalPrice = 0;
-        foreach ($productsInCart as $product) {
-            $totalPrice += $product->productNum * $product->productPrice;
-        }
+        //SQL内で計算する
+        $products = Cart::select(DB::raw('*, (productNum * productPrice) as totalPrice') )->where('userName', '=', Auth::user()->name)->get();
+        //合計個数と金額
+        $totalNum = $products->sum('productNum');
+        $totalPrice = $products->sum('totalPrice');
         
         return array($totalNum, $totalPrice);
     }
     
     //決済処理
-    public function confirm(Request $request) {
+    public function confirm() {
         $orderProducts = Cart::where('userName', '=', Auth::user()->name)->get();
         $userInfo = User::where('name', '=', Auth::user()->name)->get();
         
@@ -160,8 +138,8 @@ class ProductsController extends Controller
         $orderHistory->userId = Auth::user()->id;
         $orderHistory->save();
         
+        //注文明細の登録
         foreach ($orderProducts as $orderProduct) {
-            //amazonの場合
             $orderDetails = new OrderAmazonDetail();
             $orderDetails->orderNum = $orderHistory->id;
             $orderDetails->userName = Auth::user()->name;
@@ -183,7 +161,7 @@ class ProductsController extends Controller
         
     }
     
-    //商品一覧を表示　
+    //商品一覧を表示
     public function showProducts() {
         $url = $this->amazonApi();
 
@@ -196,12 +174,11 @@ class ProductsController extends Controller
         return view('users.amazon', ['items' => $results]);
     }
     
-    //カートを表示　
+    //カートを表示
     public function showCart() {
         //SQL内で計算する
         $products = Cart::select(DB::raw('*, (productNum * productPrice) as totalPrice') )->where('userName', '=', Auth::user()->name)->get();
         //合計個数と金額
-        //dd($products);
         $totalNum = $products->sum('productNum');
         $totalPrice = $products->sum('totalPrice');
     
@@ -212,7 +189,6 @@ class ProductsController extends Controller
     //買い物履歴を表示
     public function showOrderHistory() {
         $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->paginate(10);
-        //return $orderHistories;
         
         $orderDetails = OrderAmazonDetail::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->get();
         $orderDetails = $orderDetails->groupBy('orderNum');
@@ -236,8 +212,8 @@ class ProductsController extends Controller
                 $url = $this->amazonApi(1, $searchText);
                 $xml = file_get_contents($url);
             }
-            $results = $this->getItem($xml);
-            return view('users.amazon', ['items' => $results]);
+            $items = $this->getItem($xml);
+            return view('users.amazon', ['items' => $items]);
             
         } else {
             //注文検索の場合
@@ -246,16 +222,13 @@ class ProductsController extends Controller
             $orderDetails = OrderAmazonDetail::whereRaw("userName = ?", array( Auth::user()->name));
             //ユーザーIDから注文履歴の取得
             if ($searchText) {
-/*ok*/
                 $orderDetails = $orderDetails->where("productName", "like", "%".$searchText."%");
-/**/
             }
             $orderDetails = $orderDetails->orderBy('id', 'desc')->get();
             $orderDetails = $orderDetails->groupBy('orderNum');
             
-/*ok*/
             $lastPage = OrderHistory::where('userId', '=', Auth::user()->id)->paginate(10)->lastPage();
-/**/
+            
             return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('lastPage', $lastPage);  
         }
     }
@@ -274,18 +247,17 @@ class ProductsController extends Controller
         $afterPrice = $request->selectedNum * $cart->productPrice;
         //値段の変動分
         $changePrice = $afterPrice - $beforePrice;
-/*ok*/   
+
         $productsInCart = Cart::where('userName', Auth::user()->name)->get();
         
         $totalNum = $productsInCart->sum('productNum');
         
         $totalPrice = $request->nowPrice + $changePrice;
-/**/        
+
         return array(number_format($afterPrice), $totalNum, number_format($totalPrice));
     }
 
     public function autoPaging(Request $request) {
-        
         //現在のページ、検索ワード
         $url = $this->amazonApi($request->currentPage, $request->searchText);
         if ($request->searchText == "") {
@@ -300,9 +272,9 @@ class ProductsController extends Controller
     }
     
     //購入履歴を削除
-    public function deleteOrderHistory(Request $request) {
+    public function deleteOrderHistory() {
         $deleteOrderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->delete();
-        $deleteOrderDetails = OrderDetail::where('id', '=', Auth::user()->id)->delete();
+        $deleteOrderDetails = OrderAmazonDetail::where('userName', '=', Auth::user()->name)->delete();
     }
     
     //xmlの取得
@@ -311,7 +283,7 @@ class ProductsController extends Controller
             $xml = file_get_contents($url);
             $newXml = new AmazonXml();
             $newXml->xml = $xml;
-            $newXml->page = $request->currentPage;
+            $newXml->page = $page;
             $newXml->save();
         } else {
             $timestamp = $xmlData->updated_at->getTimestamp();

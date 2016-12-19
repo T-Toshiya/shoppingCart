@@ -15,7 +15,7 @@
                 @else
                 <option value="{{ $i }}">{{ $i }}</option>
                 @endif
-                @endfor  
+                @endfor
                 </select>
                 
                 <input type="text" value="{{ $item->ASIN }}" style="display:none;">

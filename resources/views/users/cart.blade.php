@@ -12,7 +12,8 @@
     {{ $product->productName }}
 </div>
 <div class="cart productPrice">
-    数量：<select name="num" id="cartProductNum_{{ $product->id }}" class="cartProductNum" onchange="changeCart({{ $product->id }}, {{ $product->productId }})">
+<!--   数量：<select name="num" id="cartProductNum_{{ $product->productId }}" class="cartProductNum" onchange="changeCart({{ $product->productId }})">-->
+    数量：<select name="num" id="cartProductNum_{{ $product->productId }}" class="cartProductNum" data-productid="{{ $product->productId }}">
     
     @for ($i = 1; $i < 11; $i++)
     @if ($i == $product->productNum)
@@ -23,10 +24,11 @@
     @endfor
     
     </select>
-    <div id="price_{{ $product->id }}">¥{{ number_format($product->productPrice * $product->productNum) }}</div>
+    <div id="price_{{ $product->productId }}">¥{{ number_format($product->productPrice * $product->productNum) }}</div>
 </div>
 <div class="delete">
-    <a href="javascript:void(0)" onclick="destroy({{ $product->id }})">[削除]</a>
+<!--    <a href="javascript:void(0)" onclick="destroy({{ $product->id }})">[削除]</a>-->
+    <a id="deleteItem" href="javascript:void(0)" data-deleteid="{{ $product->id }}">[削除]</a>
 </div>
 </div>
 </li>

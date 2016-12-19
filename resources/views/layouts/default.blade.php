@@ -19,8 +19,8 @@
        <div class="container">
            @yield('content')
        </div>
+        <p id="pageTop" style="position:fixed;right:5px;bottom:5px"><a href="#">PAGE TOP</a></p>
        <div class="loading"></div>
-       <p id="pageTop"><a href="#">PAGE TOP</a></p>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="js/script.js"></script>
     <script type="text/javascript" src="js/jquery.bottom-1.0.js"></script>

@@ -1,4 +1,4 @@
-<button type="submit" onclick="deleteOrderHistory()">履歴削除</button>
+<button type="submit">履歴削除</button>
 
 <ul id="productList" class="productList" style="list-style:none;">
     @count()
