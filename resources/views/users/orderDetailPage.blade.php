@@ -6,7 +6,7 @@
         <li>
             <div class="order"> 
                 <div class="orderHistory orderImage">
-                    <img src="images/{{ $order->imagePath }}" height="100" width="100">
+                    <img src="{{ $order->imagePath }}" height="100" width="100">
                 </div>
                 <div class="orderHistory orderName">
                     {{ $order->productName }}

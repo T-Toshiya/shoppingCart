@@ -12,14 +12,12 @@ $(function() {
         //初期設定をクリア
         $(window).unbind("bottom");
 
-        var page = 1; //ページ番号
+        var page = 2; //次のページ番号
         var end_flag = 0; //最後のページまで行ったら1にして読み込みを終了させる
         var currentMenu = $("#currentMenu div").attr('id');
-        console.log(currentMenu);
         
         currentMenu === 'products' ? endPage = 10 : endPage = $(".orderHistoryLastPage").data('lastpage');
-
-        //var searchText = $("#searchText").val();
+        
         if (currentMenu === 'products' || currentMenu === 'orderHistory') {
         $(window).bottom({proximity: 0.05});
         $(window).bind("bottom", function() {
@@ -31,11 +29,10 @@ $(function() {
                     $(".loading").html('loading...');
 
                     var fd = new FormData();
-                    page++;
                     fd.append("currentPage", page);
                     fd.append("currentMenu", currentMenu);
                     fd.append("searchText", $("#searchText").val());
-
+                    
                     setTimeout(function() {
                         $.ajax({
                             type: 'POST',
@@ -45,13 +42,9 @@ $(function() {
                             contentType: false,
                         }).done(function(data) {
                             $(".loading").html('');
-                            if (page <= endPage) {
-                                $("#productList").append(data);
-                                obj.data('loading', false);
-                            } else {
-                                end_flag++;
-                                obj.data('loading', false);
-                            }
+                            $("#productList").append(data);
+                            page < endPage ? page++ : end_flag++;
+                            obj.data('loading', false);
                         }).fail(function(data) {
                             console.log('fail');
                             alert('通信エラー');
@@ -81,7 +74,7 @@ $(function() {
             $("#deleteOrderHistory").hide();
             init();
         }).fail(function(error) {
-            alert('不正アクセスエラー');
+            alert('通信エラー');
         });
     });
     
@@ -130,11 +123,6 @@ $(function() {
     
     //商品検索
     $("#searchBtn").click(function() {
-//        var searchText = $("#searchText").val();
-//        var searchContent = $("#searchText").attr('class');
-//        var fd = new FormData();
-//        fd.append("searchText", searchText);
-//        fd.append("searchContent", searchContent);
         var fd = new FormData();
         fd.append("searchText", $("#searchText").val());
         fd.append("searchContent", $("#searchText").attr('class'));
@@ -149,25 +137,6 @@ $(function() {
             init();
         }).fail(function(error) {
             alert('通信エラー');
-        });
-    });
-    
-    $(document).on('click', '.insertCartBtn', function() {
-        var fd = new FormData();
-        fd.append("productId", $(this).prev("input").val());
-        fd.append("selectedNum", $("#productNum_" + productId).val());
-        $.ajax({
-            type: 'POST',
-            url: '/insertCart',
-            data: fd,
-            processData: false,
-            contentType: false,
-        }).done(function(totalNum) {
-            $("#cart").html("<a href='javascript:void(0)'>カート("+totalNum+"点)</a>");
-            init();
-        }).fail(function(error) {
-            console.log(error);
-            alert('不正アクセスエラー');
         });
     });
     
@@ -226,17 +195,17 @@ $(function() {
                 processData: false,
                 contentType: false,
             }).done(function(result) {
-                var totalNum = result[0];
-                var totalPrice = result[1];
+                //↓データの渡し方がわかりにくい。元からtotalNum、totalPriceで渡せば初期化する必要もない。
+//                var totalNum = result[0];
+//                var totalPrice = result[1];
 
                 $("#cart_"+deleteId).remove();
-
-                if (totalNum == 0) {
-                    $("#cart").html("カート("+totalNum+"点)");
-                } else {
-                    $("#cart").html("<a href='javascript:void(0)'>カート("+totalNum+"点)</a>");
+                //↓一回初期化するように書く。条件に当てはまるようなら上書き。
+                $("#cart").html("カート("+result['totalNum']+"点)");
+                if (result['totalNum'] > 0) {
+                    $("#cart").html("<a href='javascript:void(0)'>カート("+result['totalNum']+"点)</a>");
                 }
-                $("#total").html("小計("+totalNum+"点):¥"+totalPrice);
+                $("#total").html("小計("+result['totalNum']+"点):¥"+result['totalPrice']);
             }).fail(function(error) {
                 $("#userDisp").html(error);
                 alert('不正アクセスエラー');
@@ -259,13 +228,10 @@ $(function() {
             processData: false,
             contentType: false,
         }).done(function(result) {
-            var postPrice = result[0];
-            var totalNum = result[1];
-            var totalPrice = result[2];
-
-            $("#price_"+productId).html("¥"+postPrice);
-            $("#total").html("小計("+totalNum+"点):¥"+totalPrice);
-            $("#cart").html("<a href='javascript:void(0)'>カート("+totalNum+"点)</a>");
+            var data = JSON.parse(result);
+    　　　　 $("#price_"+productId).html("¥"+data["postPrice"]);
+            $("#total").html("小計("+data["totalNum"]+"点):¥"+data["totalPrice"]);
+            $("#cart").html("<a href='javascript:void(0)'>カート("+data["totalNum"]+"点)</a>");
         }).fail(function(error) {
             console.log(error);
             //alert('不正アクセスエラー');
@@ -295,12 +261,6 @@ $(function() {
     $(window).scroll(function() {
         //三項演算子にした
         $(this).scrollTop() > 100 ? pageTop.fadeIn() : pageTop.fadeOut();
-        
-//        if ($(this).scrollTop() > 100) {
-//            pageTop.fadeIn();
-//        } else {
-//            pageTop.fadeOut();
-//        }
     });
 
     pageTop.click(function() {

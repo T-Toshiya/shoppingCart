@@ -121,7 +121,7 @@ class ProductsController extends Controller
         $totalNum = $products->sum('productNum');
         $totalPrice = $products->sum('totalPrice');
         
-        return array($totalNum, $totalPrice);
+        return array("totalNum" => $totalNum, "totalPrice" => $totalPrice);
     }
     
     //決済処理
@@ -188,12 +188,10 @@ class ProductsController extends Controller
     
     //買い物履歴を表示
     public function showOrderHistory() {
-        $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->paginate(10);
-        
-        $orderDetails = OrderAmazonDetail::where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->get();
-        $orderDetails = $orderDetails->groupBy('orderNum');
-        
+        $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->paginate(10);
         $lastPage = $orderHistories->lastPage();
+        
+        $orderDetails = $this->getOrderDetails($orderHistories);
         
         return view('users.orderDetail')->with('orderDetails', $orderDetails)->with('lastPage', $lastPage);
     }
@@ -254,21 +252,34 @@ class ProductsController extends Controller
         
         $totalPrice = $request->nowPrice + $changePrice;
 
-        return array(number_format($afterPrice), $totalNum, number_format($totalPrice));
+        //return array("postPrice" => number_format($afterPrice), "totalNum" => $totalNum, "totalPrice" => number_format($totalPrice));
+        //JSON型で書けば、よりJavaScriptっぽく書ける
+        return json_encode(array("postPrice" => number_format($afterPrice), "totalNum" => $totalNum, "totalPrice" => number_format($totalPrice)));
     }
 
     public function autoPaging(Request $request) {
-        //現在のページ、検索ワード
-        $url = $this->amazonApi($request->currentPage, $request->searchText);
-        if ($request->searchText == "") {
-            $xmlData = AmazonXml::where('page', '=', $request->currentPage)->first();
-            $xml = $this->getXml($url, $xmlData, $request->currentPage);
+        //製品一覧の場合
+        if ($request->currentMenu == "products") {
+            //現在のページ、検索ワード
+            $url = $this->amazonApi($request->currentPage, $request->searchText);
+            if ($request->searchText == "") {
+                $xmlData = AmazonXml::where('page', '=', $request->currentPage)->first();
+                $xml = $this->getXml($url, $xmlData, $request->currentPage);
+            } else {
+                $xml = file_get_contents($url);
+            }
+            $results = $this->getItem($xml);
+
+            return view('users.amazon')->with('items', $results)->with('page', $request->currentPage);
         } else {
-            $xml = file_get_contents($url);
+            //注文履歴の場合
+            //読み込むページのデータを取得
+            $orderHistories = OrderHistory::where('userId', '=', Auth::user()->id)->orderBy('id', 'desc')->skip(($request->currentPage-1)*10)->take(10)->get();
+            
+            $orderDetails = $this->getOrderDetails($orderHistories);
+
+            return view('users.orderDetailPage')->with('orderDetails', $orderDetails);
         }
-        $results = $this->getItem($xml);
-        
-        return view('users.amazon')->with('items', $results)->with('page', $request->currentPage);
     }
     
     //購入履歴を削除
@@ -308,5 +319,16 @@ class ProductsController extends Controller
             $results[] = $Item;
         }
         return $results;
+    }
+    
+    //注文明細の取得
+    public function getOrderDetails($orderHistories) {
+        //取得データの最初と最後のIDを取得
+        $nextPageFirstId = $orderHistories->first()->id;
+        $nextPageLastId = $orderHistories->last()->id;
+        //最初と最後の注文番号の間のデータを取得
+        $orderDetails = DB::table('order_amazon_details')->whereBetween('orderNum', [$nextPageLastId, $nextPageFirstId])->where('userName', '=', Auth::user()->name)->orderBy('id', 'desc')->get();
+        $orderDetails = $orderDetails->groupBy('orderNum');
+        return $orderDetails;
     }
 }
